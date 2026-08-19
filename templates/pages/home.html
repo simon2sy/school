@@ -586,35 +586,137 @@
 {% endif %}
 
 {# ====== ADMISSION CTA ====== #}
-<section class="py-20 bg-gradient-to-br from-accent-500 via-accent-600 to-orange-700 text-white" aria-labelledby="cta-heading">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<section class="relative py-20 overflow-hidden" aria-labelledby="cta-heading">
+
+    {# ── Background ── #}
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900"></div>
+
+    {# ── Decorative Elements ── #}
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        {# Subtle grid pattern #}
+        <div class="absolute inset-0 opacity-5"
+             style="background-image: radial-gradient(circle, white 1px, transparent 1px);
+                    background-size: 32px 32px;"></div>
+
+        {# Gradient orbs #}
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-primary-400/15 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                    w-[600px] h-[600px] bg-primary-600/10 rounded-full blur-3xl"></div>
+    </div>
+
+    {# ── Content ── #}
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div class="max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-white text-sm font-medium mb-8">
-                <span class="inline-block w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                {% if school.admission_open %}Admissions Open{% else %}Join Our Community{% endif %}
+
+            {# Badge #}
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm
+                        border border-white/20 rounded-full text-white text-sm font-medium mb-8">
+                {% if school.admission_open %}
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full
+                                 bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                </span>
+                Admissions Open
+                {% else %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477
+                           3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5
+                           1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477
+                           4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746
+                           0-3.332.477-4.5 1.253"/>
+                </svg>
+                Join Our Community
+                {% endif %}
             </div>
-            <h2 id="cta-heading" class="font-heading font-bold text-4xl lg:text-5xl mb-5 leading-tight">
-                Start Your Journey<br/>at Amity College
+
+            {# Heading #}
+            <h2 id="cta-heading"
+                class="font-heading font-bold text-4xl lg:text-5xl text-white mb-5 leading-tight">
+                Start Your Journey
+                <span class="block text-primary-200">at {{ school.school_name|default:"Amity College" }}</span>
             </h2>
-            <p class="text-orange-100 text-lg mb-10 leading-relaxed">
+
+            {# Description #}
+            <p class="text-primary-100/80 text-lg mb-10 leading-relaxed max-w-2xl mx-auto">
                 {{ school.admission_info|default:"Admissions are now open for the upcoming academic year. Apply now to secure your spot and begin your journey toward academic excellence." }}
             </p>
+
+            {# Buttons #}
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+
+                {# Primary Button #}
                 <a href="{% url 'core:admissions' %}"
-                   class="inline-flex items-center gap-2 px-8 py-4 bg-white text-orange-700 font-bold text-base rounded-2xl hover:bg-orange-50 transition-all duration-300 shadow-xl hover:shadow-2xl">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                   class="group inline-flex items-center gap-2.5 px-8 py-4 bg-white
+                          text-primary-800 font-bold text-base rounded-2xl
+                          hover:bg-primary-50 transition-all duration-300
+                          shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/20
+                          hover:-translate-y-0.5">
+                    <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2
+                               2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Start Your Application
+                    <svg class="w-4 h-4 text-primary-400 group-hover:translate-x-1 transition-transform"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5l7 7-7 7"/>
+                    </svg>
                 </a>
+
+                {# Secondary Button #}
                 <a href="{% url 'core:contact' %}"
-                   class="inline-flex items-center gap-2 px-8 py-4 border-2 border-white/50 text-white hover:border-white hover:bg-white/10 font-semibold text-base rounded-2xl transition-all duration-300">
+                   class="inline-flex items-center gap-2.5 px-8 py-4 border-2 border-white/30
+                          text-white hover:border-white/60 hover:bg-white/10
+                          font-semibold text-base rounded-2xl transition-all duration-300
+                          hover:-translate-y-0.5">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0
+                               01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1
+                               1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0
+                               01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
                     Contact Us
                 </a>
+
             </div>
+
+            {# Trust Indicators #}
+            <div class="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-primary-200/60">
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    NEB Affiliated
+                </div>
+                <span class="w-1 h-1 rounded-full bg-primary-400/40 hidden sm:block"></span>
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7
+                               20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0
+                               0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6
+                               3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Experienced Faculty
+                </div>
+                <span class="w-1 h-1 rounded-full bg-primary-400/40 hidden sm:block"></span>
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
+                               0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1
+                               1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Modern Campus
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
