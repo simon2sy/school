@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between h-16 lg:h-20">
 
             {# Logo #}
-            <a href="{% url 'core:home' %}" class="flex items-center gap-3 flex-shrink-0" aria-label="{{ school_settings.school_name|default:'Amity College' }} Home">
+            <a href="{% url 'core:home' %}" class="flex items-center gap-3 min-w-0" aria-label="{{ school_settings.school_name|default:'Amity College' }} Home">
                 {% if school_settings.logo %}
                 <img src="{{ school_settings.logo.url }}"
                      alt="{{ school_settings.school_name }} Logo"
@@ -17,11 +17,11 @@
                     </svg>
                 </div>
                 {% endif %}
-                <div class="hidden sm:block">
-                    <div class="text-lg lg:text-xl font-bold text-primary-800 font-heading leading-tight">
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm sm:text-lg lg:text-xl font-bold text-primary-800 font-heading leading-tight truncate">
                         {{ school_settings.school_name|default:"Amity College" }}
                     </div>
-                    <div class="text-xs text-gray-500 font-medium">
+                    <div class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">
                         {{ school_settings.organization_name|default:"Amity Education Foundation" }}
                     </div>
                 </div>

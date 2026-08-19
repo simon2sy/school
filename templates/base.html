@@ -6,16 +6,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     {# SEO Meta Tags #}
-    <title>{% block title %}{{ page_title|default:"Amity College - Birtamod, Nepal" }}{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}{{ meta_description|default:"Amity College, Birtamod, Nepal - Providing quality education under Amity Education Foundation." }}{% endblock %}" />
-    <meta name="keywords" content="{% block meta_keywords %}Amity College, Birtamod, Nepal, Higher Secondary School, Education, +2 Science, +2 Management{% endblock %}" />
-    <meta name="author" content="{{ school_settings.school_name|default:'Amity College' }}" />
+    <title>{% block title %}{{ page_title|default:"Amity College - Bhadrapur-9, jhapa, Nepal" }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ meta_description|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal - Providing quality education under Amity Education Foundation." }}{% endblock %}" />
+    <meta name="keywords" content="{% block meta_keywords %}Galaxy English School, Bhadrapur-9, jhapa, Nepal, Higher Secondary School, Education, +2 Science, +2 Management{% endblock %}" />
+    <meta name="author" content="{{ school_settings.school_name|default:'Galaxy English School' }}" />
     <link rel="canonical" href="{{ request.build_absolute_uri }}" />
 
     {# Open Graph #}
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="{% block og_title %}{{ page_title|default:"Amity College - Birtamod, Nepal" }}{% endblock %}" />
-    <meta property="og:description" content="{% block og_description %}{{ meta_description|default:"Amity College, Birtamod, Nepal." }}{% endblock %}" />
+    <meta property="og:title" content="{% block og_title %}{{ page_title|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal" }}{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}{{ meta_description|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal." }}{% endblock %}" />
     <meta property="og:url" content="{{ request.build_absolute_uri }}" />
     <meta property="og:site_name" content="{{ school_settings.school_name|default:'Amity College' }}" />
     {% block og_image %}
@@ -106,14 +106,14 @@
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
         "name": "{{ school_settings.school_name|default:'Amity College' }}",
-        "alternateName": "{{ school_settings.organization_name|default:'Amity Education Foundation' }}",
-        "url": "{{ school_settings.website|default:'https://www.amity.edu.np' }}",
+        "alternateName": "{{ school_settings.organization_name|default:'Galaxy English School' }}",
+        "url": "{{ school_settings.website|default:'https://www.ami.edu.np' }}",
         "logo": "{% if school_settings.logo %}{{ request.scheme }}://{{ request.get_host }}{{ school_settings.logo.url }}{% endif %}",
-        "description": "{{ school_settings.about|default:'Quality education in Birtamod, Nepal' }}",
+        "description": "{{ school_settings.about|default:'Quality education in Galaxy English School, Bhadrapur-9, jhapa,, Nepal' }}",
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "123 Amity Road",
-            "addressLocality": "Birtamod",
+            "streetAddress": "Daijhan road",
+            "addressLocality": "Bhadrapur-9",
             "postalCode": "57204",
             "addressCountry": "NP"
         },
