@@ -3,6 +3,14 @@ from django.utils.html import format_html
 from .models import AcademicProgram, Exam, ExamRoutine, Result
 
 
+class ExamRoutineInline(admin.TabularInline):
+    """Inline to add exam routines directly while editing an examination."""
+    model = ExamRoutine
+    extra = 1
+    fields = ('grade', 'subject', 'exam_date',
+              'start_time', 'end_time', 'room', 'remarks')
+
+
 @admin.register(AcademicProgram)
 class AcademicProgramAdmin(admin.ModelAdmin):
     list_display = [
@@ -36,25 +44,42 @@ class AcademicProgramAdmin(admin.ModelAdmin):
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'academic_year', 'grade',
+        'name', 'academic_year',
         'start_date', 'end_date', 'is_published'
     ]
-    list_filter = ['academic_year', 'is_published', 'grade']
+    list_filter = ['academic_year', 'is_published']
     search_fields = ['name', 'academic_year']
     ordering = ['-start_date']
     list_editable = ['is_published']
     readonly_fields = ['created_at', 'updated_at']
+    inlines = [ExamRoutineInline]
+
+    fieldsets = (
+        ('Examination', {
+            'fields': ('name', 'academic_year')
+        }),
+        ('Dates', {
+            'fields': ('start_date', 'end_date')
+        }),
+        ('Publication', {
+            'fields': ('is_published',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
 
 
 @admin.register(ExamRoutine)
 class ExamRoutineAdmin(admin.ModelAdmin):
     list_display = [
-        'exam', 'subject', 'grade',
+        'exam', 'grade', 'subject',
         'exam_date', 'start_time', 'end_time', 'room'
     ]
     list_filter = ['exam', 'grade', 'exam_date']
     search_fields = ['subject', 'grade', 'exam__name']
-    ordering = ['exam_date', 'start_time']
+    ordering = ['grade', 'exam_date', 'start_time']
     autocomplete_fields = ['exam']
     readonly_fields = ['created_at', 'updated_at']
     date_hierarchy = 'exam_date'

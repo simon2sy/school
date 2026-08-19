@@ -44,60 +44,52 @@ def program_detail(request, slug):
     return render(request, 'academics/program_detail.html', context)
 
 
-def exam_routine(request):
-    """Exam routine page."""
+def exam_routine(request, exam_id=None):
+    """Exam routine page.
+
+    * Only published examinations are ever shown publicly.
+    * Users can select an examination and a class (Class 1 - Class 10).
+    * Routines are filtered with the ORM and sorted by exam date then
+      start time. Unpublished exams are never exposed.
+    """
     school = SchoolSettings.get_settings()
 
-    selected_exam_id = request.GET.get('exam')
+    selected_exam_id = exam_id or request.GET.get('exam')
     selected_grade = request.GET.get('grade', '')
 
-    published_exams = Exam.objects.filter(
-        is_published=True
-    ).prefetch_related('routines').order_by('-start_date')
+    # Only published examinations are visible publicly.
+    published_exams = Exam.objects.filter(is_published=True).order_by(
+        '-start_date'
+    )
 
     selected_exam = None
-    routines = []
-    grades = []
+    if selected_exam_id:
+        selected_exam = published_exams.filter(pk=selected_exam_id).first()
+    if selected_exam is None:
+        selected_exam = published_exams.first()
 
-    if published_exams.exists():
-        if selected_exam_id:
-            try:
-                selected_exam = published_exams.get(pk=selected_exam_id)
-            except Exam.DoesNotExist:
-                selected_exam = published_exams.first()
-        else:
-            selected_exam = published_exams.first()
+    # Prep the queryset using ORM filtering (never manual template filtering).
+    routines = ExamRoutine.objects.none()
+    if selected_exam:
+        routine_qs = ExamRoutine.objects.filter(
+            exam=selected_exam
+        ).order_by('exam_date', 'start_time')
 
-        if selected_exam:
-            # ✅ FIX: Use a SEPARATE queryset for grades
-            # Convert to a Python list to force evaluation + deduplication
-            grades = list(
-                ExamRoutine.objects.filter(
-                    exam=selected_exam
-                ).values_list(
-                    'grade', flat=True
-                ).distinct().order_by('grade')
-            )
+        # Filter by the selected class (if any).
+        if selected_grade:
+            routine_qs = routine_qs.filter(grade=selected_grade)
 
-            # Routines queryset
-            routines_qs = ExamRoutine.objects.filter(
-                exam=selected_exam
-            ).order_by('exam_date', 'start_time')
-
-            if selected_grade:
-                routines_qs = routines_qs.filter(grade=selected_grade)
-
-            routines = routines_qs
+        routines = routine_qs
 
     context = {
         'school': school,
         'published_exams': published_exams,
         'selected_exam': selected_exam,
         'routines': routines,
-        'grades': grades,
         'selected_grade': selected_grade,
+        'grade_choices': ExamRoutine.GRADE_CHOICES,
         'page_title': f"Exam Routine - {school.school_name}",
-        'meta_description': f"View exam routines at {school.school_name}.",
+        'meta_description': f"View exam routines for Classes 1-10 at {school.school_name}.",
     }
     return render(request, 'academics/exam_routine.html', context)
 def results(request):

@@ -69,15 +69,11 @@ class AcademicProgram(models.Model):
 class Exam(models.Model):
     name = models.CharField(
         max_length=200,
-        help_text="e.g., Mid-Term Examination 2083"
+        help_text="e.g., First Terminal Examination 2083"
     )
     academic_year = models.CharField(
         max_length=20,
-        help_text="e.g., 2082/83"
-    )
-    grade = models.CharField(
-        max_length=50,
-        help_text="e.g., Grade 11, Grade 12, All Grades"
+        help_text="e.g., 2083/84"
     )
     start_date = models.DateField()
     end_date = models.DateField()
@@ -99,13 +95,31 @@ class Exam(models.Model):
 
 
 class ExamRoutine(models.Model):
+    GRADE_CHOICES = [
+        ('1', 'Class 1'),
+        ('2', 'Class 2'),
+        ('3', 'Class 3'),
+        ('4', 'Class 4'),
+        ('5', 'Class 5'),
+        ('6', 'Class 6'),
+        ('7', 'Class 7'),
+        ('8', 'Class 8'),
+        ('9', 'Class 9'),
+        ('10', 'Class 10'),
+    ]
+
     exam = models.ForeignKey(
         Exam,
         on_delete=models.CASCADE,
         related_name='routines'
     )
+    grade = models.CharField(
+        max_length=2,
+        choices=GRADE_CHOICES,
+        verbose_name="Class",
+        help_text="Select the class (Class 1 - Class 10)"
+    )
     subject = models.CharField(max_length=200)
-    grade = models.CharField(max_length=50)
     exam_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -123,12 +137,13 @@ class ExamRoutine(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['exam_date', 'start_time']
+        ordering = ['grade', 'exam_date', 'start_time']
         verbose_name = "Exam Routine"
         verbose_name_plural = "Exam Routines"
         indexes = [
             models.Index(fields=['exam_date']),
             models.Index(fields=['exam', 'grade']),
+            models.Index(fields=['grade']),
         ]
 
     def __str__(self):
