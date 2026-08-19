@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+{# Page Header #}
+<div class="bg-school-navy text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <nav class="flex items-center justify-center gap-2 text-sm text-blue-300 mb-4" aria-label="Breadcrumb">
+            <a href="{% url 'core:home' %}" class="hover:text-white transition-colors">Home</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <span class="text-white">Contact</span>
+        </nav>
+        <h1 class="font-heading font-bold text-4xl lg:text-5xl mb-4">Contact Us</h1>
+        <p class="text-blue-200 max-w-2xl mx-auto">
+            We're here to help. Reach out to us with any questions about admissions, programs, or general inquiries.
+        </p>
+    </div>
+</div>
+
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+            {# Contact Info #}
+            <div class="space-y-6">
+                <div>
+                    <h2 class="font-heading font-bold text-2xl text-gray-900 mb-2">Get In Touch</h2>
+                    <p class="text-gray-500 text-sm">We'll get back to you as soon as possible.</p>
+                </div>
+
+                <div class="space-y-4">
+                    {% include 'components/contact_info_card.html' with title="Address" address=school.address|default:"Amity Higher Secondary School, 123 Amity Road, Birtamod 57204, Nepal" icon="address" %}
+                    {% include 'components/contact_info_card.html' with title="Phone" phone=school.phone|default:"023-542762" icon="phone" %}
+                    {% include 'components/contact_info_card.html' with title="Email" email=school.email|default:"info@amity.edu.np" icon="email" %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

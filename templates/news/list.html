@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+{# News Section #}
+<section class="py-16 bg-school-navy">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="font-heading font-bold text-4xl lg:text-5xl text-white mb-4">Latest News</h2>
+            <p class="text-blue-300 max-w-2xl mx-auto">Stay updated with our latest news and announcements.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {% for article in articles %}
+            {% include 'components/news_card.html' with article=article %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

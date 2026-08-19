@@ -1,0 +1,42 @@
+{% if page_obj.has_other_pages %}
+<nav class="flex items-center justify-center gap-2 mt-12" aria-label="Pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+       class="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all duration-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Previous
+    </a>
+    {% endif %}
+
+    <div class="flex items-center gap-1">
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="w-10 h-10 flex items-center justify-center bg-primary-700 text-white text-sm font-semibold rounded-xl">
+                {{ num }}
+            </span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+               class="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all duration-200">
+                {{ num }}
+            </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+       class="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all duration-200">
+        Next
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+    </a>
+    {% endif %}
+
+    <div class="hidden sm:flex items-center text-sm text-gray-500 ml-4">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </div>
+</nav>
+{% endif %}

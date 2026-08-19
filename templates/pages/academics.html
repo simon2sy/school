@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{# Academics Section #}
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {# Programs #}
+            <div>
+                <h2 class="font-heading font-bold text-3xl lg:text-4xl text-gray-900 mb-6">Academic Programs</h2>
+                
+                <p class="text-gray-600 text-lg mb-6">
+                    Amity College offers a diverse range of programs designed to nurture talent and prepare students for successful careers. Our curriculum combines theoretical knowledge with practical skills.
+                </p>
+                
+                <div class="space-y-4">
+                    {% include 'components/program_card.html' with program=program %}
+                    {% for program in programs %}
+                    {% include 'components/program_card.html' with program=program %}
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-8 pt-8 border-t border-gray-200">
+                    <a href="{% url 'academics:programs' %}" class="text-primary-700 hover:text-primary-900 transition-colors text-sm font-medium">Explore All Programs</a>
+                </div>
+            </div>
+            
+            {# Quick Info #}
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4">Program Highlights</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-4 bg-white rounded-xl border border-gray-100">
+                        <div class="font-semibold text-primary-700">+2 Science</div>
+                        <div class="text-xs text-gray-500">Pre-medical, Engineering</div>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border border-gray-100">
+                        <div class="font-semibold text-primary-700">+2 Management</div>
+                        <div class="text-xs text-gray-500">Business, Finance</div>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border border-gray-100">
+                        <div class="font-semibold text-primary-700">Bachelor Level</div>
+                        <div class="text-xs text-gray-500">Various Disciplines</div>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border border-gray-100">
+                        <div class="font-semibold text-primary-700">Advanced Level</div>
+                        <div class="text-xs text-gray-500">Specialized Fields</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

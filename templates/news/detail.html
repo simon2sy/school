@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+{# News Detail Section #}
+<section class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+            {# Featured Image #}
+            {% if article.featured_image %}
+            <div class="aspect-[16/9] bg-gray-100 overflow-hidden">
+                <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-full h-full object-cover" loading="eager" />
+            </div>
+            {% endif %}
+
+            {# Content #}
+            <div class="p-6 space-y-6">
+                {# Meta Info #}
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <time datetime="{{ article.published_at|date:'Y-m-d' }}">{{ article.published_at|date:"M d, Y" }}</time>
+                    {% if article.author %}
+                    <span class="text-gray-500">· {{ article.author }}</span>
+                    {% endif %}
+                </div>
+
+                {# Category #}
+                {% if article.category %}
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full">
+                    {{ article.category.name }}
+                </div>
+                {% endif %}
+
+                {# Title #}
+                <h1 class="font-heading font-bold text-3xl lg:text-4xl mb-4">{{ article.title }}</h1>
+
+                {# Content #}
+                <div class="prose prose-gray text-lg leading-relaxed">
+                    {{ article.content|safe }}
+                </div>
+
+                {# Read Time / Share #}
+                <div class="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Reading time: {{ article.read_time|default:"5" }} min</span>
+                    <span>|</span>
+                    <a href="#" class="text-primary-700 hover:text-primary-900 transition-colors">Share</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

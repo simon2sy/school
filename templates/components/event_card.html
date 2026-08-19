@@ -1,0 +1,50 @@
+{# Usage: {% include 'components/event_card.html' with event=event %} #}
+<article class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 hover:border-primary-100 transition-all duration-300">
+    <div class="flex flex-col sm:flex-row">
+        {# Date Block #}
+        <div class="flex-shrink-0 bg-primary-700 text-white flex flex-col items-center justify-center p-5 sm:w-24 min-h-24">
+            <div class="text-3xl font-bold font-heading leading-none">
+                {{ event.start_datetime|date:"d" }}
+            </div>
+            <div class="text-xs font-medium text-primary-200 uppercase tracking-widest mt-1">
+                {{ event.start_datetime|date:"M" }}
+            </div>
+            <div class="text-xs text-primary-300 mt-0.5">
+                {{ event.start_datetime|date:"Y" }}
+            </div>
+        </div>
+        {# Content #}
+        <div class="p-5 flex-1">
+            {% if event.featured_image %}
+            <div class="aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100">
+                <img src="{{ event.featured_image.url }}"
+                     alt="{{ event.title }}"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                     loading="lazy" />
+            </div>
+            {% endif %}
+            <h3 class="font-heading font-semibold text-gray-900 text-base mb-2 leading-snug group-hover:text-primary-700 transition-colors">
+                <a href="{{ event.get_absolute_url }}">{{ event.title }}</a>
+            </h3>
+            {% if event.location %}
+            <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {{ event.location }}
+            </div>
+            {% endif %}
+            <p class="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-3">
+                {{ event.description|truncatechars:120 }}
+            </p>
+            <a href="{{ event.get_absolute_url }}"
+               class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-900 transition-colors">
+                View Details
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</article>

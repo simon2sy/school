@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+{# Events Detail Section #}
+<section class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+            {# Featured Image #}
+            {% if event.featured_image %}
+            <div class="aspect-[16/9] bg-gray-100 overflow-hidden">
+                <img src="{{ event.featured_image.url }}" alt="{{ event.title }}" class="w-full h-full object-cover" loading="eager" />
+            </div>
+            {% endif %}
+
+            {# Content #}
+            <div class="p-6 space-y-6">
+                {# Meta Info #}
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <time datetime="{{ event.start_datetime|date:'Y-m-d' }}" class="font-medium">
+                        {{ event.start_datetime|date:"M d, Y" }}
+                    </time>
+                    {% if event.location %}
+                    <span class="text-gray-500">· {{ event.location }}</span>
+                    {% endif %}
+                </div>
+
+                {# Title #}
+                <h1 class="font-heading font-bold text-3xl lg:text-4xl mb-4">{{ event.title }}</h1>
+
+                {# Event Details #}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                    <div>
+                        <span class="text-primary-700 font-medium">Starts</span><br>
+                        {{ event.start_datetime|date:"h:mma" }} - {{ event.end_datetime|date:"h:mma" if event.end_datetime else "All day" }}
+                    </div>
+                    <div>
+                        <span class="text-primary-700 font-medium">Type</span><br>
+                        {% if event.event_type %}{{ event.event_type }}{% else %}General Event{% endif %}
+                    </div>
+                </div>
+
+                {# Description #}
+                <div>
+                    <p class="leading-relaxed">{{ event.description|default:"No description available."|truncatechars:300 }}</p>
+                </div>
+
+                {# CTA #}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <a href="{{ event.get_absolute_url }}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

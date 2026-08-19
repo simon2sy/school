@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{# ── Hero ── #}
+<section class="bg-primary-700 py-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <a href="{% url 'content:notice_list' %}"
+           class="inline-flex items-center gap-1.5 text-primary-200 hover:text-white
+                  text-sm mb-4 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to Notices
+        </a>
+
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+            {% if notice.is_important %}
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold
+                         bg-red-500 text-white">
+                Important
+            </span>
+            {% endif %}
+        </div>
+
+        <h1 class="font-heading font-bold text-2xl lg:text-3xl text-white mb-2">
+            {{ notice.title }}
+        </h1>
+
+        <div class="flex flex-wrap items-center gap-4 text-sm text-primary-200">
+            <span class="flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0
+                           00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Published {{ notice.published_at|date:"M d, Y" }}
+            </span>
+            {% if notice.expires_at %}
+            <span class="flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {% if notice.is_expired %}
+                    Expired {{ notice.expires_at|date:"M d, Y" }}
+                {% else %}
+                    Expires {{ notice.expires_at|date:"M d, Y" }}
+                {% endif %}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{# ── Content ── #}
+<section class="py-10 bg-gray-50 min-h-screen">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            {# ── Notice Body ── #}
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 lg:p-8">
+                    <div class="prose prose-gray max-w-none text-sm leading-relaxed text-gray-700">
+                        {{ notice.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+
+            {# ── Sidebar ── #}
+            <div class="space-y-4">
+
+                {# Attachment #}
+                {% if notice.attachment %}
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4
+                                   4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                        Attachment
+                    </h3>
+                    <a href="{{ notice.attachment.url }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex items-center gap-3 p-3 rounded-lg border border-gray-100
+                              bg-gray-50 hover:bg-primary-50 hover:border-primary-200
+                              transition-colors group">
+                        <div class="w-9 h-9 bg-primary-100 rounded-lg flex items-center
+                                    justify-center flex-shrink-0 group-hover:bg-primary-200
+                                    transition-colors">
+                            <svg class="w-5 h-5 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2
+                                       2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1
+                                       0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-gray-800 truncate">
+                                Download Attachment
+                            </p>
+                            <p class="text-xs text-gray-400">Click to open</p>
+                        </div>
+                    </a>
+                </div>
+                {% endif %}
+
+                {# Notice Info #}
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-3">Notice Details</h3>
+                    <dl class="space-y-2.5 text-sm">
+                        <div class="flex justify-between gap-2">
+                            <dt class="text-gray-500">Published</dt>
+                            <dd class="text-gray-800 font-medium text-right">
+                                {{ notice.published_at|date:"M d, Y" }}
+                            </dd>
+                        </div>
+                        {% if notice.expires_at %}
+                        <div class="flex justify-between gap-2">
+                            <dt class="text-gray-500">Expires</dt>
+                            <dd class="font-medium text-right
+                                       {% if notice.is_expired %}text-red-600{% else %}text-gray-800{% endif %}">
+                                {{ notice.expires_at|date:"M d, Y" }}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between gap-2">
+                            <dt class="text-gray-500">Status</dt>
+                            <dd class="text-right">
+                                {% if notice.is_expired %}
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                             bg-red-50 text-red-600">Expired</span>
+                                {% elif notice.is_active %}
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                             bg-green-50 text-green-700">Active</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% if notice.is_important %}
+                        <div class="flex justify-between gap-2">
+                            <dt class="text-gray-500">Priority</dt>
+                            <dd class="text-right">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                             bg-red-50 text-red-600">Important</span>
+                            </dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+
+                {# Back Link #}
+                <a href="{% url 'content:notice_list' %}"
+                   class="flex items-center justify-center gap-2 w-full px-4 py-2.5
+                          text-sm font-medium text-primary-700 bg-white border border-primary-200
+                          rounded-xl hover:bg-primary-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    All Notices
+                </a>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
