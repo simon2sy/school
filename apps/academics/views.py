@@ -75,6 +75,8 @@ def exam_routine(request, exam_id=None):
 
     # Prep the queryset using ORM filtering (never manual template filtering).
     routines = ExamRoutine.objects.none()
+    # Group routines into one table per class so classes are never merged.
+    class_routines = []
     if selected_exam:
         routine_qs = ExamRoutine.objects.filter(
             exam=selected_exam
@@ -86,11 +88,24 @@ def exam_routine(request, exam_id=None):
 
         routines = routine_qs
 
+        # Build one group per class, keeping Class 1 -> Class 10 order and
+        # preserving the existing date/time ordering inside each class.
+        grade_label_map = dict(ExamRoutine.GRADE_CHOICES)
+        for grade_value, _ in ExamRoutine.GRADE_CHOICES:
+            grade_routines = routines.filter(grade=grade_value)
+            if grade_routines.exists():
+                class_routines.append({
+                    'grade': grade_value,
+                    'grade_label': grade_label_map[grade_value],
+                    'routines': grade_routines,
+                })
+
     context = {
         'school': school,
         'published_exams': published_exams,
         'selected_exam': selected_exam,
         'routines': routines,
+        'class_routines': class_routines,
         'selected_grade': selected_grade,
         'grade_choices': ExamRoutine.GRADE_CHOICES,
         'page_title': f"Exam Routine - {school.school_name}",
