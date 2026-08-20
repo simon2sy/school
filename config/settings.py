@@ -74,6 +74,36 @@ if os.getenv('USE_SQLITE', 'True') == 'True':
         }
     }
 
+# Caching: default to the in-memory LocMemCache (fine for a single server).
+# Swap to a dedicated backend (e.g. Redis/Memcached) in production when
+# running multiple workers so the cache is shared across processes.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'galaxy-default-cache',
+    }
+}
+
+# Email configuration for the contact form. Configure these in your .env
+# file when going live (e.g. a SendGrid / SMTP provider).
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+DEFAULT_FROM_EMAIL = os.getenv(
+    'DEFAULT_FROM_EMAIL',
+    'Galaxy English School <info@galaxyenglishschool.edu.np>'
+)
+CONTACT_TO_EMAIL = os.getenv(
+    'CONTACT_TO_EMAIL',
+    'info@galaxyenglishschool.edu.np'
+)
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -113,6 +143,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 # Admin customization
-ADMIN_SITE_HEADER = "Amity College Administration"
-ADMIN_SITE_TITLE = "Amity College Admin"
-ADMIN_INDEX_TITLE = "Welcome to Amity College Admin Panel"
+ADMIN_SITE_HEADER = "Galaxy English School Administration"
+ADMIN_SITE_TITLE = "Galaxy English School Admin"
+ADMIN_INDEX_TITLE = "Welcome to Galaxy English School Admin Panel"

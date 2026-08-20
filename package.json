@@ -1,0 +1,13 @@
+{
+  "name": "galaxy-english-school",
+  "version": "1.0.0",
+  "description": "Static Tailwind build for Galaxy English School Django site",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.10"
+  }
+}

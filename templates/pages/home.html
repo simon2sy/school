@@ -30,7 +30,7 @@
             {% if school.admission_open %}
             Admissions Open for 2082/83
             {% else %}
-            {{ school.organization_name|default:"Amity Education Foundation" }}
+            {{ school.organization_name|default:"Galaxy English School" }}
             {% endif %}
         </div>
 
@@ -87,7 +87,7 @@
                     Welcome to<br/>
                     <span class="text-primary-700">{{ school.school_name|default:"Galaxy English School" }}</span>
                 </h2>
-                <p class="text-primary-600 font-medium mb-4">{{ school.organization_name|default:"Amity Education Foundation" }}</p>
+                <p class="text-primary-600 font-medium mb-4">{{ school.organization_name|default:"Galaxy English School" }}</p>
                 <p class="text-gray-600 leading-relaxed mb-6">
                     {{ school.about|default:"Galaxy English School is a leading educational institution in Bhadrapur-9, Nepal. We are committed to providing quality education and nurturing the holistic development of our students." }}
                 </p>
@@ -232,7 +232,7 @@
                     <div class="w-72 h-80 rounded-3xl overflow-hidden shadow-2xl">
                         <img src="{{ school.principal_photo.url }}"
                              alt="{{ school.principal_name }}"
-                             class="w-full h-full object-cover" />
+                             class="w-full h-full object-cover" loading="lazy" />
                     </div>
                     {% else %}
                     <div class="w-72 h-80 rounded-3xl bg-primary-800/50 border border-primary-700/50 flex items-center justify-center">
@@ -280,7 +280,7 @@
 </section>
 {% endif %}
 
-{# ====== WHY CHOOSE AMITY ====== #}
+{# ====== WHY CHOOSE GALAXY ====== #}
 <section class="py-20 bg-white" aria-labelledby="why-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
@@ -534,7 +534,7 @@
                     News & Updates
                 </div>
                 <h2 id="news-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl">
-                    Latest from Amity
+                    Latest News
                 </h2>
             </div>
             <a href="{% url 'content:news_list' %}"
@@ -713,7 +713,7 @@
                     Gallery
                 </div>
                 <h2 id="gallery-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl">
-                    Life at Amity
+                    Life at Galaxy
                 </h2>
             </div>
             <a href="{% url 'content:gallery' %}"
@@ -931,22 +931,18 @@
                         </div>
                         <div>
                             <div class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-0.5">Email</div>
-                            <a href="mailto:{{ school.email|default:'info@amity.edu.np' }}" class="text-gray-800 font-medium text-sm hover:text-primary-700 transition-colors">
-                                {{ school.email|default:"info@amity.edu.np" }}
+                            <a href="mailto:{{ school.email|default:'info@galaxyenglishschool.edu.np' }}" class="text-gray-800 font-medium text-sm hover:text-primary-700 transition-colors">
+                                {{ school.email|default:"info@galaxyenglishschool.edu.np" }}
                             </a>
                         </div>
                     </div>
                 </div>
                 {# Map Placeholder #}
-                <div class="mt-6 rounded-2xl overflow-hidden bg-gray-100 h-48 border border-gray-200 flex items-center justify-center">
-                    <div class="text-center text-gray-400">
-                        <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                        </svg>
-                        <p class="text-sm font-medium">Birtamod, Nepal</p>
-                        <p class="text-xs mt-1">Google Maps embed can be added here</p>
-                    </div>
-                </div>
+                {# Map Placeholder with Link #}
+{# Map Embedded #}
+<div class="mt-6 rounded-2xl overflow-hidden border border-gray-200">
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3567.640899211972!2d88.08561399999999!3d26.595896300000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39e5b1fb0fbc72b7%3A0x9b5957229bfece31!2sGalaxy%20English%20Boarding%20School!5e0!3m2!1sen!2snp!4v1787224877200!5m2!1sen!2snp" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
             </div>
 
             {# Quick Contact Form #}

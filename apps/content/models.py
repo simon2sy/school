@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils import timezone
+from apps.core.image_utils import optimize_image
 
 
 class NewsCategory(models.Model):
@@ -78,6 +79,7 @@ class NewsArticle(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self._generate_unique_slug()
+        optimize_image(self.featured_image)
         super().save(*args, **kwargs)
 
     def _generate_unique_slug(self):
@@ -143,6 +145,7 @@ class Notice(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self._generate_unique_slug()
+        optimize_image(self.image)
         super().save(*args, **kwargs)
 
     def _generate_unique_slug(self):
@@ -210,6 +213,7 @@ class Event(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self._generate_unique_slug()
+        optimize_image(self.featured_image)
         super().save(*args, **kwargs)
 
     def _generate_unique_slug(self):
@@ -258,6 +262,7 @@ class GalleryAlbum(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        optimize_image(self.cover_image)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -294,3 +299,7 @@ class GalleryImage(models.Model):
 
     def __str__(self):
         return self.title or f"Image in {self.album.title}"
+
+    def save(self, *args, **kwargs):
+        optimize_image(self.image)
+        super().save(*args, **kwargs)

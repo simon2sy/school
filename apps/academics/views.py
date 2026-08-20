@@ -80,7 +80,7 @@ def exam_routine(request, exam_id=None):
     if selected_exam:
         routine_qs = ExamRoutine.objects.filter(
             exam=selected_exam
-        ).order_by('exam_date', 'start_time')
+        ).order_by('grade', 'exam_date', 'start_time')
 
         # Filter by the selected class (if any).
         if selected_grade:
@@ -89,16 +89,23 @@ def exam_routine(request, exam_id=None):
         routines = routine_qs
 
         # Build one group per class, keeping Class 1 -> Class 10 order and
-        # preserving the existing date/time ordering inside each class.
+        # preserving the date/time ordering inside each class. This is a single
+        # DB query (routines above) then grouped in Python to avoid N+1 lookups.
         grade_label_map = dict(ExamRoutine.GRADE_CHOICES)
-        for grade_value, _ in ExamRoutine.GRADE_CHOICES:
-            grade_routines = routines.filter(grade=grade_value)
-            if grade_routines.exists():
-                class_routines.append({
-                    'grade': grade_value,
-                    'grade_label': grade_label_map[grade_value],
-                    'routines': grade_routines,
-                })
+        grade_order = [value for value, _ in ExamRoutine.GRADE_CHOICES]
+        graded = {value: [] for value in grade_order}
+        for routine in routines:
+            graded.setdefault(routine.grade, []).append(routine)
+
+        class_routines = [
+            {
+                'grade': value,
+                'grade_label': grade_label_map[value],
+                'routines': graded[value],
+            }
+            for value in grade_order
+            if graded.get(value)
+        ]
 
     context = {
         'school': school,

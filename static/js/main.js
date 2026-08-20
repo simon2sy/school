@@ -1,4 +1,4 @@
-/* Amity School - main.js
+/* Galaxy English School - main.js
  * Global site behavior.
  *
  * Primary responsibility: power the mobile navigation (hamburger) menu.
@@ -69,5 +69,23 @@
                 }
             }
         });
+
+        // Scroll-to-top button.
+        var scrollTopBtn = document.getElementById('scroll-top-btn');
+        if (scrollTopBtn) {
+            var updateScrollBtn = function () {
+                if (window.scrollY > 400) {
+                    scrollTopBtn.classList.add('show');
+                } else {
+                    scrollTopBtn.classList.remove('show');
+                }
+            };
+            window.addEventListener('scroll', updateScrollBtn);
+            window.addEventListener('resize', updateScrollBtn);
+            updateScrollBtn();
+            scrollTopBtn.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
     });
 })();

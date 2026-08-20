@@ -25,11 +25,11 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
                 <h2 class="font-heading font-bold text-3xl text-gray-900 mb-5">
-                    {{ school.school_name|default:"Amity College" }}
+                    {{ school.school_name|default:"Galaxy English School" }}
                 </h2>
-                <p class="text-primary-600 font-semibold mb-4 text-lg">{{ school.organization_name|default:"Amity Education Foundation" }}</p>
+                <p class="text-primary-600 font-semibold mb-4 text-lg">{{ school.organization_name|default:"Galaxy English School" }}</p>
                 <div class="prose prose-gray max-w-none text-gray-600 leading-relaxed">
-                    <p>{{ school.about|default:"Amity College, established under the Amity Education Foundation, is a leading educational institution in Birtamod, Nepal. We are committed to providing quality education and nurturing the holistic development of our students, preparing them for success in higher education and professional careers." }}</p>
+                    <p>{{ school.about|default:"Galaxy English School, established under the Galaxy English School, is a leading educational institution in Birtamod, Nepal. We are committed to providing quality education and nurturing the holistic development of our students, preparing them for success in higher education and professional careers." }}</p>
                 </div>
                 {% if school.established_year %}
                 <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-full text-sm font-medium">
@@ -81,7 +81,7 @@
                     {% if school.principal_photo %}
                     <img src="{{ school.principal_photo.url }}"
                          alt="{{ school.principal_name }}"
-                         class="w-32 h-32 rounded-full object-cover border-4 border-white/30 mb-4" />
+                         class="w-32 h-32 rounded-full object-cover border-4 border-white/30 mb-4" loading="lazy" />
                     {% else %}
                     <div class="w-32 h-32 rounded-full bg-white/20 flex items-center justify-center mb-4">
                         <svg class="w-16 h-16 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">

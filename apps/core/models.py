@@ -1,19 +1,23 @@
 from django.db import models
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from apps.core.image_utils import optimize_image
 
 
 class SchoolSettings(models.Model):
+    # Cache key for the singleton settings object.
+    CACHE_KEY = "galaxy_school_settings"
     """
     Singleton model for school-wide configuration.
     Only one instance should exist.
     """
     school_name = models.CharField(
         max_length=200,
-        default="Amity College"
+        default="Galaxy English School"
     )
     organization_name = models.CharField(
         max_length=200,
-        default="Amity Education Foundation"
+        default="Galaxy English School"
     )
     logo = models.ImageField(
         upload_to='school/logo/',
@@ -26,17 +30,17 @@ class SchoolSettings(models.Model):
         help_text="Upload favicon (recommended: 32x32 PNG)"
     )
     address = models.TextField(
-        default="Amity Higher Secondary School, 123 Amity Road, Birtamod 57204, Nepal"
+        default="Galaxy English School, Bhadrapur-9, Jhapa 57204, Nepal"
     )
     phone = models.CharField(
         max_length=50,
         default="023-542762"
     )
     email = models.EmailField(
-        default="info@amity.edu.np"
+        default="info@galaxyenglishschool.edu.np"
     )
     website = models.URLField(
-        default="https://www.amity.edu.np",
+        default="https://www.galaxyenglishschool.edu.np",
         blank=True
     )
     principal_name = models.CharField(
@@ -56,7 +60,7 @@ class SchoolSettings(models.Model):
     )
     about = models.TextField(
         blank=True,
-        default="Amity College, established under the Amity Education Foundation, is a leading educational institution in Birtamod, Nepal. We are committed to providing quality education and nurturing the holistic development of our students.",
+        default="Galaxy English School is a leading educational institution in Bhadrapur-9, Jhapa, Nepal. We are committed to providing quality education and nurturing the holistic development of our students.",
         help_text="About the school"
     )
     mission = models.TextField(
@@ -88,7 +92,7 @@ class SchoolSettings(models.Model):
         help_text="Main hero section headline"
     )
     hero_subtitle = models.TextField(
-        default="Amity College, Birtamod provides a world-class education rooted in Nepali values. Join our community of learners and build your future with us.",
+        default="Galaxy English School, Birtamod provides a world-class education rooted in Nepali values. Join our community of learners and build your future with us.",
         help_text="Hero section subheading"
     )
     hero_image = models.ImageField(
@@ -121,16 +125,27 @@ class SchoolSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        # Optimize uploads (hero/logo/principal) before storing. The favicon is
+        # intentionally left untouched — it is tiny by nature.
+        optimize_image(self.hero_image, max_width=1920, max_height=1080)
+        optimize_image(self.logo, max_width=600, max_height=600)
+        optimize_image(self.principal_photo, max_width=800, max_height=800)
         super().save(*args, **kwargs)
+        # Refresh the cached copy so edits show up immediately.
+        cache.set(type(self).CACHE_KEY, self)
 
     @classmethod
     def get_settings(cls):
-        """Get school settings, create default if none exists."""
+        """Get school settings (cached), create default if none exists."""
+        cached = cache.get(cls.CACHE_KEY)
+        if cached is not None:
+            return cached
         obj, created = cls.objects.get_or_create(
             pk=1,
             defaults={
-                'school_name': 'Amity College',
-                'organization_name': 'Amity Education Foundation',
+                'school_name': 'Galaxy English School',
+                'organization_name': 'Galaxy English School',
             }
         )
+        cache.set(cls.CACHE_KEY, obj)
         return obj

@@ -3,7 +3,7 @@
 {% block content %}
 
 {# ── Hero ── #}
-<section class="bg-primary-700 py-10">
+<section class="no-print bg-primary-700 py-10">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-3 mb-1">
             <svg class="w-7 h-7 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@
         {% else %}
 
         {# ── Selector Card ── #}
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 mb-8">
+        <div class="no-print bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 mb-8">
             <form method="GET" action="{% url 'academics:exam_routine' %}"
                   class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                 <div>
@@ -95,8 +95,18 @@
                     <span class="text-primary-700 font-medium">{{ selected_exam.academic_year }}</span>
                 </p>
             </div>
-            <div class="text-sm text-gray-500 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm whitespace-nowrap">
-                {{ selected_exam.start_date|date:"M d, Y" }} &rarr; {{ selected_exam.end_date|date:"M d, Y" }}
+            <div class="flex items-center gap-3">
+                <div class="text-sm text-gray-500 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm whitespace-nowrap no-print">
+                    {{ selected_exam.start_date|date:"M d, Y" }} &rarr; {{ selected_exam.end_date|date:"M d, Y" }}
+                </div>
+                <button type="button" onclick="window.print()"
+                        class="no-print inline-flex items-center gap-2 px-4 py-2 bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Print / Save PDF
+                </button>
             </div>
         </div>
 

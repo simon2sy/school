@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     {# SEO Meta Tags #}
-    <title>{% block title %}{{ page_title|default:"Amity College - Bhadrapur-9, jhapa, Nepal" }}{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}{{ meta_description|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal - Providing quality education under Amity Education Foundation." }}{% endblock %}" />
+    <title>{% block title %}{{ page_title|default:"Galaxy English School - Bhadrapur-9, jhapa, Nepal" }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ meta_description|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal - Providing quality education under Galaxy English School." }}{% endblock %}" />
     <meta name="keywords" content="{% block meta_keywords %}Galaxy English School, Bhadrapur-9, jhapa, Nepal, Higher Secondary School, Education, +2 Science, +2 Management{% endblock %}" />
     <meta name="author" content="{{ school_settings.school_name|default:'Galaxy English School' }}" />
     <link rel="canonical" href="{{ request.build_absolute_uri }}" />
@@ -17,7 +17,7 @@
     <meta property="og:title" content="{% block og_title %}{{ page_title|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal" }}{% endblock %}" />
     <meta property="og:description" content="{% block og_description %}{{ meta_description|default:"Galaxy English School, Bhadrapur-9, jhapa, Nepal." }}{% endblock %}" />
     <meta property="og:url" content="{{ request.build_absolute_uri }}" />
-    <meta property="og:site_name" content="{{ school_settings.school_name|default:'Amity College' }}" />
+    <meta property="og:site_name" content="{{ school_settings.school_name|default:'Galaxy English School' }}" />
     {% block og_image %}
     {% if school_settings.logo %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ school_settings.logo.url }}" />
@@ -31,66 +31,8 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
     {% endif %}
 
-    {# Tailwind CSS CDN #}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#1d4ed8',
-                            700: '#1e40af',
-                            800: '#1e3a8a',
-                            900: '#172554',
-                        },
-                        accent: {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            400: '#fb923c',
-                            500: '#f97316',
-                            600: '#ea580c',
-                        },
-                        school: {
-                            blue: '#1e3a8a',
-                            navy: '#172554',
-                            gold: '#f59e0b',
-                            light: '#f0f4ff',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        heading: ['Poppins', 'Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.6s ease-out forwards',
-                        'slide-up': 'slideUp 0.6s ease-out forwards',
-                        'slide-in-left': 'slideInLeft 0.6s ease-out forwards',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(30px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        slideInLeft: {
-                            '0%': { opacity: '0', transform: 'translateX(-30px)' },
-                            '100%': { opacity: '1', transform: 'translateX(0)' },
-                        },
-                    },
-                },
-            },
-        }
-    </script>
+    {# Tailwind CSS (compiled with `npm run build:css`) #}
+    <link rel="stylesheet" href="/static/css/tailwind.css" />
 
     {# Google Fonts #}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -105,9 +47,9 @@
     {
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
-        "name": "{{ school_settings.school_name|default:'Amity College' }}",
+        "name": "{{ school_settings.school_name|default:'Galaxy English School' }}",
         "alternateName": "{{ school_settings.organization_name|default:'Galaxy English School' }}",
-        "url": "{{ school_settings.website|default:'https://www.ami.edu.np' }}",
+        "url": "{{ school_settings.website|default:'https://www.galaxyenglishschool.edu.np' }}",
         "logo": "{% if school_settings.logo %}{{ request.scheme }}://{{ request.get_host }}{{ school_settings.logo.url }}{% endif %}",
         "description": "{{ school_settings.about|default:'Quality education in Galaxy English School, Bhadrapur-9, jhapa,, Nepal' }}",
         "address": {
@@ -118,7 +60,7 @@
             "addressCountry": "NP"
         },
         "telephone": "{{ school_settings.phone|default:'023-542762' }}",
-        "email": "{{ school_settings.email|default:'info@amity.edu.np' }}"
+        "email": "{{ school_settings.email|default:'info@galaxyenglishschool.edu.np' }}"
     }
     </script>
 
@@ -160,6 +102,13 @@
 
     {# Footer #}
     {% include 'components/footer.html' %}
+
+    {# Scroll-to-top #}
+    <button type="button" id="scroll-top-btn" class="scroll-top" aria-label="Scroll to top">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7-7-7m2-13a2 2 0 012-2h-2m-4-3.707L15 8l-7-7 7 7-7z"/>
+        </svg>
+    </button>
 
     {# Main JS #}
     <script src="/static/js/main.js"></script>

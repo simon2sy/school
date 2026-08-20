@@ -129,20 +129,47 @@ def contact(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            # In production, send email or save to DB
-            # For now, show success message
+            from django.conf import settings as dj_settings
+            from django.core.mail import send_mail
             from django.contrib import messages
-            messages.success(
-                request,
-                "Thank you for your message! We will get back to you shortly."
+            import logging
+
+            logger = logging.getLogger(__name__)
+            cleaned = form.cleaned_data
+            subject = f"[Contact Form] {cleaned['subject']} - {cleaned['name']}"
+            body = (
+                f"Name: {cleaned['name']}\n"
+                f"Email: {cleaned['email']}\n"
+                f"Phone: {cleaned.get('phone', 'Not provided')}\n\n"
+                f"Message:\n{cleaned['message']}"
             )
+            try:
+                send_mail(
+                    subject,
+                    body,
+                    dj_settings.DEFAULT_FROM_EMAIL,
+                    [dj_settings.CONTACT_TO_EMAIL],
+                    fail_silently=False,
+                )
+                messages.success(
+                    request,
+                    "Thank you for your message! We will get back to you shortly.",
+                )
+            except Exception as exc:
+                # The console backend just prints in dev; on any failure we log
+                # but still thank the visitor instead of showing an error page.
+                logger.warning("Contact form email failed: %s", exc)
+                messages.info(
+                    request,
+                    "Thanks for your message! Our team will contact you shortly.",
+                )
             form = ContactForm()
 
     context = {
         'school': school,
         'form': form,
         'page_title': f"Contact Us - {school.school_name}",
-        'meta_description': f"Contact {school.school_name}, Birtamod, Nepal. Phone: 023-542762, Email: info@amity.edu.np",
+        'meta_description': f"Contact {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'pages/contact.html', context)
 

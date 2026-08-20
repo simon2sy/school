@@ -29,10 +29,10 @@
 
                     <div>
                         <div class="text-white font-bold font-heading text-lg leading-tight">
-                            {{ school_settings.school_name|default:"Amity College" }}
+                            {{ school_settings.school_name|default:"Galaxy English School" }}
                         </div>
                         <div class="text-gray-400 text-xs">
-                            {{ school_settings.organization_name|default:"Amity Education Foundation" }}
+                            {{ school_settings.organization_name|default:"Galaxy English School" }}
                         </div>
                     </div>
                 </div>
@@ -272,7 +272,7 @@
                                 Address
                             </div>
                             <p class="text-sm text-gray-400 leading-relaxed">
-                                {{ school_settings.address|default:"123 Amity Road, Birtamod 57204, Nepal" }}
+                                {{ school_settings.address|default:"Bhadrapur-9, Jhapa 57204, Nepal" }}
                             </p>
                         </div>
                     </div>
@@ -313,9 +313,9 @@
                             <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">
                                 Email
                             </div>
-                            <a href="mailto:{{ school_settings.email|default:'info@amity.edu.np' }}"
+                            <a href="mailto:{{ school_settings.email|default:'info@galaxyenglishschool.edu.np' }}"
                                class="text-sm text-gray-400 hover:text-white transition-colors">
-                                {{ school_settings.email|default:"info@amity.edu.np" }}
+                                {{ school_settings.email|default:"info@galaxyenglishschool.edu.np" }}
                             </a>
                         </div>
                     </div>
@@ -331,10 +331,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p class="text-sm text-gray-500">
-                    © {% now "Y" %} {{ school_settings.school_name|default:"Amity College" }}.
+                    © {% now "Y" %} {{ school_settings.school_name|default:"Galaxy English School" }}.
                     All Rights Reserved.
                     <span class="text-gray-600">|</span>
-                    {{ school_settings.organization_name|default:"Amity Education Foundation" }}
+                    {{ school_settings.organization_name|default:"Galaxy English School" }}
                 </p>
                 <div class="flex items-center gap-4 text-sm">
                     <a href="/sitemap.xml"
