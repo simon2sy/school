@@ -10,7 +10,8 @@ from datetime import datetime
 import io
 import csv
 from django.contrib.admin.views.decorators import staff_member_required
-from openpyxl import load_workbook
+
+
 def programs(request):
     """List all academic programs."""
     school = SchoolSettings.get_settings()
@@ -237,6 +238,7 @@ def read_csv_file(uploaded_file):
 
 
 def read_excel_file(uploaded_file):
+    from openpyxl import load_workbook
 
     workbook = load_workbook(
         uploaded_file,
