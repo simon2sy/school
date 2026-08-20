@@ -14,9 +14,13 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {% for article in articles %}
             {% include 'components/news_card.html' with article=article %}
+            {% empty %}
+            <p class="text-blue-200 col-span-full">No news published yet.</p>
             {% endfor %}
         </div>
+
+        {% include 'components/pagination.html' with page_obj=page_obj %}
     </div>
-</div>
+</section>
 
 {% endblock %}

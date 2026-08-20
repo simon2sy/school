@@ -1,16 +1,29 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
+INSECURE_FALLBACK_KEY = "django-insecure-fallback-key-change-in-production"
+SECRET_KEY = os.getenv("SECRET_KEY", INSECURE_FALLBACK_KEY)
 
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+# DEBUG defaults ON for local development. Set DEBUG=False in your server .env
+# so the app runs hardened (security middleware + secret-key guard below).
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Refuse to boot in production with a weak/placeholder secret key.
+if not DEBUG and SECRET_KEY == INSECURE_FALLBACK_KEY:
+    raise ImproperlyConfigured(
+        "Production requires a real SECRET_KEY. Set it in your .env file. "
+        "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(50))\""
+    )
+
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1"
+).split(",")
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -35,7 +48,10 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    # SecurityMiddleware must be first. Whitenoise goes right after it so
+    # static files are served through WSGI (no separate static mapping needed).
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -120,6 +136,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Whitenoise: compress + cache static files with an immutable "max-age=1 year"
+# on hashed filenames. Works with compress=True for smaller payloads.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files
 MEDIA_URL = '/media/'

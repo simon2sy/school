@@ -81,8 +81,8 @@ def home(request):
         'gallery_images': gallery_images,
         'gallery_pictures': gallery_pictures,
         'inspiring_quotes': inspiring_quotes,
-        'page_title': f"{school.school_name} - Quality Education in Birtamod, Nepal",
-        'meta_description': f"Welcome to {school.school_name}, Birtamod, Nepal. Providing quality education under {school.organization_name}.",
+        'page_title': f"{school.school_name} - Quality Education in Bhadrapur-9, Jhapa, Nepal",
+        'meta_description': f"Welcome to {school.school_name}, Bhadrapur-9, Jhapa, Nepal. Providing quality education under {school.organization_name}.",
     }
     return render(request, 'pages/home.html', context)
 
@@ -99,7 +99,7 @@ def about(request):
     context = {
         'school': school,
         'page_title': f"About Us - {school.school_name}",
-        'meta_description': f"Learn about {school.school_name}, its mission, vision, and commitment to quality education in Birtamod, Nepal.",
+        'meta_description': f"Learn about {school.school_name}, its mission, vision, and commitment to quality education in Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'pages/about.html', context)
 
@@ -115,7 +115,7 @@ def admissions(request):
         'school': school,
         'programs': programs,
         'page_title': f"Admissions - {school.school_name}",
-        'meta_description': f"Apply for admission at {school.school_name}, Birtamod. Quality education for your bright future.",
+        'meta_description': f"Apply for admission at {school.school_name}, Bhadrapur-9, Jhapa. Quality education for your bright future.",
     }
     return render(request, 'pages/admissions.html', context)
 

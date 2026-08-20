@@ -22,7 +22,7 @@ def programs(request):
         'school': school,
         'programs': program_list,
         'page_title': f"Academic Programs - {school.school_name}",
-        'meta_description': f"Explore academic programs offered at {school.school_name}, Birtamod, Nepal.",
+        'meta_description': f"Explore academic programs offered at {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'academics/programs.html', context)
 
@@ -163,7 +163,7 @@ def results(request):
         'error_message': error_message,
         'available_exams': available_exams,
         'page_title': f"Check Results - {school.school_name}",
-        'meta_description': f"Check your exam results at {school.school_name}, Birtamod, Nepal.",
+        'meta_description': f"Check your exam results at {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'academics/results.html', context)
 def parse_date(value):

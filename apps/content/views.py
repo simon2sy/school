@@ -47,11 +47,12 @@ def news_list(request):
     context = {
         'school': school,
         'page_obj': page_obj,
+        'articles': page_obj.object_list,
         'categories': categories,
         'selected_category': selected_category,
         'search_query': search_query,
         'page_title': f"News & Updates - {school.school_name}",
-        'meta_description': f"Latest news, announcements and updates from {school.school_name}, Birtamod, Nepal.",
+        'meta_description': f"Latest news, announcements and updates from {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'news/list.html', context)
 
@@ -117,7 +118,7 @@ def notice_list(request):
         'school': school,
         'page_obj': page_obj,
         'page_title': f"Notices - {school.school_name}",
-        'meta_description': f"Official notices and announcements from {school.school_name}, Birtamod, Nepal.",
+        'meta_description': f"Official notices and announcements from {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'content/notices.html', context)
 
@@ -144,7 +145,7 @@ def notice_detail(request, slug):
 
 
 def event_list(request):
-    """Events listing page."""
+    """Events listing page with upcoming events and paginated past events."""
     school = SchoolSettings.get_settings()
     now = timezone.now()
 
@@ -166,8 +167,9 @@ def event_list(request):
         'school': school,
         'upcoming_events': upcoming_events,
         'past_page_obj': past_page_obj,
+        'past_events': past_page_obj.object_list,
         'page_title': f"Events - {school.school_name}",
-        'meta_description': f"Upcoming and past events at {school.school_name}, Birtamod, Nepal.",
+        'meta_description': f"Upcoming and past events at {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'events/list.html', context)
 
@@ -210,7 +212,7 @@ def gallery(request):
         'school': school,
         'albums': albums,
         'page_title': f"Photo Gallery - {school.school_name}",
-        'meta_description': f"Photo gallery of {school.school_name}, Birtamod, Nepal.",
+        'meta_description': f"Photo gallery of {school.school_name}, Bhadrapur-9, Jhapa, Nepal.",
     }
     return render(request, 'content/gallery.html', context)
 

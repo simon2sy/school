@@ -92,7 +92,7 @@ class SchoolSettings(models.Model):
         help_text="Main hero section headline"
     )
     hero_subtitle = models.TextField(
-        default="Galaxy English School, Birtamod provides a world-class education rooted in Nepali values. Join our community of learners and build your future with us.",
+        default="Galaxy English School, Bhadrapur-9 provides a world-class education rooted in Nepali values. Join our community of learners and build your future with us.",
         help_text="Hero section subheading"
     )
     hero_image = models.ImageField(
