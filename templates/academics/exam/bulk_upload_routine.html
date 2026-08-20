@@ -1,0 +1,119 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+Bulk Upload Exam Routine
+{% endblock %}
+
+{% block content %}
+
+<div id="content-main">
+
+    <h1>
+        Bulk Upload Exam Routine
+    </h1>
+
+    <div class="module">
+
+        <h2>
+            {{ exam.name }} - {{ exam.academic_year }}
+        </h2>
+
+        <p>
+            All uploaded routines will automatically be
+            assigned to this examination.
+        </p>
+
+    </div>
+
+
+    {% if errors %}
+
+        <div class="messagelist">
+
+            <div class="error">
+
+                <strong>
+                    Import failed.
+                </strong>
+
+                <p>
+                    No routines were imported.
+                </p>
+
+                <ul>
+
+                    {% for error in errors %}
+
+                        <li>
+                            {{ error }}
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <div class="module">
+
+        <h2>Required Excel/CSV Format</h2>
+
+        <p>
+            Your first row must contain these columns:
+        </p>
+
+        <pre>grade,subject,exam_date,start_time,end_time,room,remarks</pre>
+
+        <h3>Example</h3>
+
+        <pre>grade,subject,exam_date,start_time,end_time,room,remarks
+1,English,2026-09-01,10:00,11:00,Room 1,
+1,Mathematics,2026-09-02,10:00,11:00,Room 1,
+1,Science,2026-09-03,10:00,11:00,Room 1,
+2,English,2026-09-01,10:00,11:00,Room 2,
+2,Mathematics,2026-09-02,10:00,11:00,Room 2,
+2,Science,2026-09-03,10:00,11:00,Room 2,</pre>
+
+    </div>
+
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+    >
+
+        {% csrf_token %}
+
+        <fieldset class="module aligned">
+
+            {{ form.as_p }}
+
+        </fieldset>
+
+        <div class="submit-row">
+
+            <input
+                type="submit"
+                value="Upload & Import Routine"
+                class="default"
+            >
+
+            <a
+                href="{% url 'admin:academics_exam_change' exam.pk %}"
+                class="button"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

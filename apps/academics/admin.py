@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.urls import path
 from .models import AcademicProgram, Exam, ExamRoutine, Result
 
-
+from .views import bulk_upload_exam_routine
 class ExamRoutineInline(admin.TabularInline):
     """Inline to add exam routines directly while editing an examination."""
     model = ExamRoutine
@@ -43,32 +44,80 @@ class AcademicProgramAdmin(admin.ModelAdmin):
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
+
+    change_form_template = "academics/exam/change_form.html"
+
     list_display = [
         'name', 'academic_year',
         'start_date', 'end_date', 'is_published'
     ]
-    list_filter = ['academic_year', 'is_published']
-    search_fields = ['name', 'academic_year']
+
+    list_filter = [
+        'academic_year',
+        'is_published'
+    ]
+
+    search_fields = [
+        'name',
+        'academic_year'
+    ]
+
     ordering = ['-start_date']
+
     list_editable = ['is_published']
-    readonly_fields = ['created_at', 'updated_at']
+
+    readonly_fields = [
+        'created_at',
+        'updated_at'
+    ]
+
     inlines = [ExamRoutineInline]
 
     fieldsets = (
         ('Examination', {
-            'fields': ('name', 'academic_year')
+            'fields': (
+                'name',
+                'academic_year'
+            )
         }),
+
         ('Dates', {
-            'fields': ('start_date', 'end_date')
+            'fields': (
+                'start_date',
+                'end_date'
+            )
         }),
+
         ('Publication', {
-            'fields': ('is_published',)
+            'fields': (
+                'is_published',
+            )
         }),
+
         ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': (
+                'created_at',
+                'updated_at'
+            ),
             'classes': ('collapse',),
         }),
     )
+
+    def get_urls(self):
+
+        urls = super().get_urls()
+
+        custom_urls = [
+            path(
+                '<int:exam_id>/bulk-upload-routine/',
+                self.admin_site.admin_view(
+                    bulk_upload_exam_routine
+                ),
+                name='academics_exam_bulk_upload_routine',
+            ),
+        ]
+
+        return custom_urls + urls
 
 
 @admin.register(ExamRoutine)

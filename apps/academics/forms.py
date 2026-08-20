@@ -73,3 +73,25 @@ class ExamRoutineForm(forms.ModelForm):
                     )
 
         return cleaned_data
+class ExamRoutineBulkUploadForm(forms.Form):
+    file = forms.FileField(
+        label="Routine File",
+        help_text="Upload a CSV or Excel (.xlsx) file."
+    )
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data["file"]
+
+        filename = uploaded_file.name.lower()
+
+        if not filename.endswith((".csv", ".xlsx")):
+            raise forms.ValidationError(
+                "Only CSV and Excel (.xlsx) files are allowed."
+            )
+
+        if uploaded_file.size > 5 * 1024 * 1024:
+            raise forms.ValidationError(
+                "File size cannot exceed 5 MB."
+            )
+
+        return uploaded_file

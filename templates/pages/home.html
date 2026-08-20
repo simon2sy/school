@@ -9,7 +9,7 @@
     {% if school.hero_image %}
     <div class="absolute inset-0">
         <img src="{{ school.hero_image.url }}"
-             alt="Amity College Campus"
+             alt="Galaxy English School"
              class="w-full h-full object-cover opacity-30"
              loading="eager" />
     </div>
@@ -41,7 +41,7 @@
 
         {# Subheading #}
         <p class="text-blue-200 text-lg sm:text-xl max-w-3xl mx-auto mb-10 leading-relaxed animate-slide-up">
-            {{ school.hero_subtitle|default:"Amity College, Birtamod provides a world-class education rooted in Nepali values. Join our community of learners and build your future with us." }}
+            {{ school.hero_subtitle|default:"Galaxy English School, Bhadrapur provides a world-class education rooted in Nepali values. Join our community of learners and build your future with us." }}
         </p>
 
         {# CTA Buttons #}
@@ -85,11 +85,11 @@
                 </div>
                 <h2 id="about-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl mb-5 leading-tight">
                     Welcome to<br/>
-                    <span class="text-primary-700">{{ school.school_name|default:"Amity College" }}</span>
+                    <span class="text-primary-700">{{ school.school_name|default:"Galaxy English School" }}</span>
                 </h2>
                 <p class="text-primary-600 font-medium mb-4">{{ school.organization_name|default:"Amity Education Foundation" }}</p>
                 <p class="text-gray-600 leading-relaxed mb-6">
-                    {{ school.about|default:"Amity College, established under the Amity Education Foundation, is a leading educational institution in Birtamod, Nepal. We are committed to providing quality education and nurturing the holistic development of our students." }}
+                    {{ school.about|default:"Galaxy English School is a leading educational institution in Bhadrapur-9, Nepal. We are committed to providing quality education and nurturing the holistic development of our students." }}
                 </p>
                 {# Mission & Vision #}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -178,14 +178,15 @@
     {# Location Badge #}
     <div class="absolute -top-4 -right-4 bg-primary-700 text-white rounded-2xl px-4 py-3 shadow-lg">
         <div class="text-xs font-medium opacity-80">Located in</div>
-        <div class="font-bold text-sm">Birtamod, Nepal</div>
+        <div class="font-bold text-sm">Bhadrapur-9, jhapa, Nepal</div>
     </div>
 </div>
         </div>
     </div>
 </section>
 
-{# ====== ACADEMIC PROGRAMS ====== #}
+{% comment %}
+{# ====== ACADEMIC PROGRAMS (commented out - school is up to Class 10) ====== #}
 {% if programs %}
 <section class="py-20 bg-gray-50" aria-labelledby="programs-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -217,91 +218,7 @@
     </div>
 </section>
 {% endif %}
-
-{# ====== WHY CHOOSE AMITY ====== #}
-<section class="py-20 bg-white" aria-labelledby="why-heading">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-100 text-accent-600 text-sm font-semibold rounded-full mb-4">
-                Why Choose Us
-            </div>
-            <h2 id="why-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl mb-4">
-                Why Choose Amity College?
-            </h2>
-            <p class="text-gray-500 max-w-2xl mx-auto">
-                We are committed to providing an exceptional educational experience that goes beyond the classroom.
-            </p>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {# Feature Cards #}
-            {% with features='' %}
-            {% for feature in "123456"|make_list %}
-            {% if forloop.counter == 1 %}
-            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
-                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary-700 transition-colors duration-300">
-                    <svg class="w-6 h-6 text-blue-700 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </div>
-                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Experienced Faculty</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">Our dedicated teachers bring years of academic and professional expertise to guide students toward excellence.</p>
-            </div>
-            {% elif forloop.counter == 2 %}
-            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
-                <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary-700 transition-colors duration-300">
-                    <svg class="w-6 h-6 text-green-700 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                    </svg>
-                </div>
-                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Modern Learning Environment</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">Our campus provides a conducive and modern learning environment equipped to support quality education.</p>
-            </div>
-            {% elif forloop.counter == 3 %}
-            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
-                <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary-700 transition-colors duration-300">
-                    <svg class="w-6 h-6 text-purple-700 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Academic Excellence</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">A strong focus on academics ensures our students are well-prepared for university and beyond.</p>
-            </div>
-            {% elif forloop.counter == 4 %}
-            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
-                <div class="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary-700 transition-colors duration-300">
-                    <svg class="w-6 h-6 text-yellow-700 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                    </svg>
-                </div>
-                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Student Development</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">We invest in the holistic development of every student—academically, socially, and personally.</p>
-            </div>
-            {% elif forloop.counter == 5 %}
-            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
-                <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary-700 transition-colors duration-300">
-                    <svg class="w-6 h-6 text-red-700 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Extracurricular Activities</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">Sports, arts, clubs, and events round out the educational experience and help students discover their passions.</p>
-            </div>
-            {% elif forloop.counter == 6 %}
-            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
-                <div class="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary-700 transition-colors duration-300">
-                    <svg class="w-6 h-6 text-teal-700 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                </div>
-                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Supportive Community</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">A warm, inclusive community where every student, parent, and teacher feels valued and supported.</p>
-            </div>
-            {% endif %}
-            {% endfor %}
-            {% endwith %}
-        </div>
-    </div>
-</section>
+{% endcomment %}
 
 {# ====== PRINCIPAL MESSAGE ====== #}
 {% if school.principal_name or school.principal_message %}
@@ -309,7 +226,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {# Photo #}
-            <div class="flex justify-center lg:justify-start">
+            <div class="flex justify-center lg:justify-start animate-fade-in" style="animation-delay: 100ms">
                 <div class="relative">
                     {% if school.principal_photo %}
                     <div class="w-72 h-80 rounded-3xl overflow-hidden shadow-2xl">
@@ -335,8 +252,8 @@
                 </div>
             </div>
             {# Message #}
-            <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 text-blue-200 text-sm font-semibold rounded-full mb-5">
+            <div class="animate-slide-up" style="animation-delay: 200ms">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 text-blue-200 text-sm font-semibold rounded-full mb-5 animate-fade-in" style="animation-delay: 150ms">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                     </svg>
@@ -350,7 +267,7 @@
                         <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
                     </svg>
                     <p class="text-blue-100 leading-relaxed text-base pl-6 border-l-4 border-primary-500 italic">
-                        {{ school.principal_message|default:"Education is not just about acquiring knowledge; it is about developing character, cultivating curiosity, and building the capacity to contribute meaningfully to society. At Amity College, we are committed to nurturing each student's potential and preparing them for a bright future. I invite you to join our community of learners." }}
+                        {{ school.principal_message|default:"Education is not just about acquiring knowledge; it is about developing character, cultivating curiosity, and building the capacity to contribute meaningfully to society. At Galaxy English School, we are committed to nurturing each student's potential and preparing them for a bright future. I invite you to join our community of learners." }}
                     </p>
                 </blockquote>
                 <div class="mt-6">
@@ -362,6 +279,250 @@
     </div>
 </section>
 {% endif %}
+
+{# ====== WHY CHOOSE AMITY ====== #}
+<section class="py-20 bg-white" aria-labelledby="why-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-100 text-accent-600 text-sm font-semibold rounded-full mb-4">
+                Why Choose Us
+            </div>
+            <h2 id="why-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl mb-4">
+                Why Choose Galaxy English School?
+            </h2>
+            <p class="text-gray-500 max-w-2xl mx-auto">
+                We are committed to providing an exceptional educational experience that goes beyond the classroom.
+            </p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {# Feature Cards #}
+            {% with features='' %}
+            {% for feature in "123456"|make_list %}
+            {% if forloop.counter == 1 %}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mb-5 shadow-md">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Experienced Faculty</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Our dedicated teachers bring years of academic and professional expertise to guide students toward excellence.</p>
+            </div>
+            {% elif forloop.counter == 2 %}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-5 shadow-md">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Modern Learning Environment</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Our campus provides a conducive and modern learning environment equipped to support quality education.</p>
+            </div>
+            {% elif forloop.counter == 3 %}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center mb-5 shadow-md">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Academic Excellence</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">A strong focus on academics ensures our students are well-prepared for university and beyond.</p>
+            </div>
+            {% elif forloop.counter == 4 %}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center mb-5 shadow-md">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                    </svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Student Development</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">We invest in the holistic development of every student—academically, socially, and personally.</p>
+            </div>
+            {% elif forloop.counter == 5 %}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center mb-5 shadow-md">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Extracurricular Activities</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Sports, arts, clubs, and events round out the educational experience and help students discover their passions.</p>
+            </div>
+            {% elif forloop.counter == 6 %}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-5 shadow-md">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg mb-2">Supportive Community</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">A warm, inclusive community where every student, parent, and teacher feels valued and supported.</p>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endwith %}
+        </div>
+    </div>
+</section>
+
+{% include 'components/inspiring_moments.html' %}
+
+{# ====== ACADEMIC LEVELS ====== #}
+<section class="py-20 bg-white" aria-labelledby="levels-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 text-sm font-semibold rounded-full mb-4">
+                Academic Levels
+            </div>
+            <h2 id="levels-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl mb-4">
+                A Complete Journey, Class 1 to 10
+            </h2>
+            <p class="text-gray-500 max-w-2xl mx-auto">
+                From foundational learning to advanced academics, we guide every student through each stage of their school journey with care and commitment.
+            </p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {# Pre-Primary #}
+            <div class="group relative overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:shadow-xl hover:border-primary-200 transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-pink-500 to-rose-600"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-pink-600 bg-pink-50 px-3 py-1 rounded-full">Stage 01</span>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg">Pre-Primary</h3>
+                <p class="text-xs text-gray-400 mb-3">Nursery &amp; Kindergarten</p>
+                <p class="text-sm text-gray-500 leading-relaxed">Play-based learning that sparks curiosity and builds confidence in our youngest learners.</p>
+            </div>
+            {# Primary #}
+            <div class="group relative overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:shadow-xl hover:border-primary-200 transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-500 to-primary-700"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-primary-600 bg-primary-50 px-3 py-1 rounded-full">Stage 02</span>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg">Primary School</h3>
+                <p class="text-xs text-gray-400 mb-3">Class 1 &ndash; 5</p>
+                <p class="text-sm text-gray-500 leading-relaxed">Strong foundations in literacy, numeracy, and joyful discovery across core subjects.</p>
+            </div>
+
+            {# Lower Secondary #}
+            <div class="group relative overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:shadow-xl hover:border-primary-200 transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-green-600"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Stage 03</span>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg">Lower Secondary</h3>
+                <p class="text-xs text-gray-400 mb-3">Class 6 &ndash; 8</p>
+                <p class="text-sm text-gray-500 leading-relaxed">Broad subject exploration that deepens understanding and builds independent thinking.</p>
+            </div>
+            {# Secondary #}
+            <div class="group relative overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:shadow-xl hover:border-primary-200 transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-600"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">Stage 04</span>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-lg">Secondary School</h3>
+                <p class="text-xs text-gray-400 mb-3">Class 9 &ndash; 10</p>
+                <p class="text-sm text-gray-500 leading-relaxed">Focused board-exam preparation with personalized guidance for academic success.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{# ====== OUR FACILITIES ====== #}
+<section class="py-20 bg-gray-50" aria-labelledby="facilities-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-primary-700 text-sm font-semibold rounded-full mb-4">
+                Campus Facilities
+            </div>
+            <h2 id="facilities-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl mb-4">
+                Everything Students Need to Thrive
+            </h2>
+            <p class="text-gray-500 max-w-2xl mx-auto">
+                Our campus is equipped with modern facilities designed to support learning, growth, and well-being.
+            </p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+            {# Library #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Library</h3>
+                <p class="text-xs text-gray-400 mt-1">Rich collection of books &amp; journals</p>
+            </div>
+            {# Science Labs #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Science Labs</h3>
+                <p class="text-xs text-gray-400 mt-1">Modern physics, chemistry &amp; biology labs</p>
+            </div>
+            {# Computer Lab #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Computer Lab</h3>
+                <p class="text-xs text-gray-400 mt-1">Digital literacy &amp; coding classes</p>
+            </div>
+            {# Sports #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Sports &amp; Games</h3>
+                <p class="text-xs text-gray-400 mt-1">Playground, athletics &amp; indoor games</p>
+            </div>
+
+            {# Transport #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h13v11H3V5zm15 11h3v-4l-3-3v7zM5 19a1 1 0 112 0 1 1 0 01-2 0zm12 0a1 1 0 112 0 1 1 0 01-2 0z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">School Transport</h3>
+                <p class="text-xs text-gray-400 mt-1">Safe and reliable bus service</p>
+            </div>
+            {# Auditorium #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Auditorium</h3>
+                <p class="text-xs text-gray-400 mt-1">Assemblies, events &amp; performances</p>
+            </div>
+            {# Canteen #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Healthy Canteen</h3>
+                <p class="text-xs text-gray-400 mt-1">Nutritious &amp; hygienic meals</p>
+            </div>
+            {# Safe & Caring #}
+            <div class="group p-6 bg-white rounded-2xl border border-gray-100 text-center hover:border-primary-200 hover:shadow-lg transition-all duration-300">
+                <div class="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="font-heading font-semibold text-gray-900 text-sm lg:text-base">Safe &amp; Caring</h3>
+                <p class="text-xs text-gray-400 mt-1">Safety, discipline &amp; counseling</p>
+            </div>
+        </div>
+    </div>
+</section>
 
 {# ====== LATEST NEWS ====== #}
 {% if latest_news %}
@@ -636,7 +797,7 @@
             <h2 id="cta-heading"
                 class="font-heading font-bold text-4xl lg:text-5xl text-white mb-5 leading-tight">
                 Start Your Journey
-                <span class="block text-primary-200">at {{ school.school_name|default:"Amity College" }}</span>
+                <span class="block text-primary-200">at {{ school.school_name|default:"Galaxy English School" }}</span>
             </h2>
 
             {# Description #}
@@ -746,7 +907,7 @@
                         </div>
                         <div>
                             <div class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-0.5">Address</div>
-                            <p class="text-gray-800 font-medium text-sm">{{ school.address|default:"123 Amity Road, Birtamod 57204, Nepal" }}</p>
+                            <p class="text-gray-800 font-medium text-sm">{{ school.address|default:"123 Dhaijan Road, Bhadrapur 57204, Nepal" }}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">

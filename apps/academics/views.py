@@ -1,11 +1,16 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404,redirect
 from django.utils import timezone
 from django.contrib import messages
 from .models import AcademicProgram, Exam, ExamRoutine, Result
 from apps.core.models import SchoolSettings
-from .forms import ResultSearchForm
+from .forms import ResultSearchForm,ExamRoutineBulkUploadForm
+from django.db import transaction
+from datetime import datetime
 
-
+import io
+import csv
+from django.contrib.admin.views.decorators import staff_member_required
+from openpyxl import load_workbook
 def programs(request):
     """List all academic programs."""
     school = SchoolSettings.get_settings()
@@ -139,3 +144,367 @@ def results(request):
         'meta_description': f"Check your exam results at {school.school_name}, Birtamod, Nepal.",
     }
     return render(request, 'academics/results.html', context)
+def parse_date(value):
+    if not value:
+        raise ValueError("Exam date is required.")
+
+    # Excel datetime/date
+    if hasattr(value, "date"):
+        return value.date()
+
+    value = str(value).strip()
+
+    formats = [
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%d/%m/%Y",
+        "%Y/%m/%d",
+    ]
+
+    for date_format in formats:
+        try:
+            return datetime.strptime(value, date_format).date()
+        except ValueError:
+            pass
+
+    raise ValueError(
+        f"Invalid date '{value}'. Use YYYY-MM-DD."
+    )
+
+
+def parse_time(value):
+    if not value:
+        raise ValueError("Time is required.")
+
+    # Excel time/datetime
+    if hasattr(value, "time"):
+        return value.time()
+
+    value = str(value).strip()
+
+    formats = [
+        "%H:%M",
+        "%H:%M:%S",
+        "%I:%M %p",
+        "%I:%M:%S %p",
+    ]
+
+    for time_format in formats:
+        try:
+            return datetime.strptime(
+                value,
+                time_format
+            ).time()
+        except ValueError:
+            pass
+
+    raise ValueError(
+        f"Invalid time '{value}'. Use HH:MM."
+    )
+
+
+def read_csv_file(uploaded_file):
+
+    content = uploaded_file.read().decode("utf-8-sig")
+
+    reader = csv.DictReader(
+        io.StringIO(content)
+    )
+
+    return list(reader)
+
+
+def read_excel_file(uploaded_file):
+
+    workbook = load_workbook(
+        uploaded_file,
+        read_only=True,
+        data_only=True
+    )
+
+    worksheet = workbook.active
+
+    rows = worksheet.iter_rows(
+        values_only=True
+    )
+
+    try:
+        headers = next(rows)
+    except StopIteration:
+        return []
+
+    headers = [
+        str(header).strip().lower()
+        if header is not None
+        else ""
+        for header in headers
+    ]
+
+    result = []
+
+    for row in rows:
+
+        if not any(value is not None for value in row):
+            continue
+
+        row_data = {}
+
+        for index, header in enumerate(headers):
+
+            if not header:
+                continue
+
+            row_data[header] = (
+                row[index]
+                if index < len(row)
+                else None
+            )
+
+        result.append(row_data)
+
+    return result
+
+
+def normalize_row(row):
+
+    return {
+        str(key)
+        .strip()
+        .lower()
+        .replace(" ", "_"): value
+
+        for key, value in row.items()
+        if key is not None
+    }
+
+
+@staff_member_required
+def bulk_upload_exam_routine(request, exam_id):
+
+    exam = get_object_or_404(
+        Exam,
+        pk=exam_id
+    )
+
+    if request.method == "POST":
+
+        form = ExamRoutineBulkUploadForm(
+            request.POST,
+            request.FILES
+        )
+
+        if form.is_valid():
+
+            uploaded_file = form.cleaned_data["file"]
+
+            try:
+
+                filename = uploaded_file.name.lower()
+
+                if filename.endswith(".csv"):
+                    rows = read_csv_file(
+                        uploaded_file
+                    )
+
+                else:
+                    rows = read_excel_file(
+                        uploaded_file
+                    )
+
+                if not rows:
+                    raise ValueError(
+                        "The uploaded file contains no data."
+                    )
+
+                required_columns = {
+                    "grade",
+                    "subject",
+                    "exam_date",
+                    "start_time",
+                    "end_time",
+                }
+
+                first_row = normalize_row(rows[0])
+
+                missing_columns = (
+                    required_columns
+                    - set(first_row.keys())
+                )
+
+                if missing_columns:
+
+                    raise ValueError(
+                        "Missing required columns: "
+                        + ", ".join(
+                            sorted(missing_columns)
+                        )
+                    )
+
+                routines = []
+                errors = []
+
+                valid_grades = dict(
+                    ExamRoutine.GRADE_CHOICES
+                )
+
+                for row_number, raw_row in enumerate(
+                    rows,
+                    start=2
+                ):
+
+                    row = normalize_row(raw_row)
+
+                    try:
+
+                        grade = str(
+                            row.get("grade", "")
+                        ).strip()
+
+                        subject = str(
+                            row.get("subject", "")
+                        ).strip()
+
+                        room = str(
+                            row.get("room", "")
+                            or ""
+                        ).strip()
+
+                        remarks = str(
+                            row.get("remarks", "")
+                            or ""
+                        ).strip()
+
+                        if grade not in valid_grades:
+                            raise ValueError(
+                                f"Invalid grade '{grade}'. "
+                                "Use 1 to 10."
+                            )
+
+                        if not subject:
+                            raise ValueError(
+                                "Subject is required."
+                            )
+
+                        exam_date = parse_date(
+                            row.get("exam_date")
+                        )
+
+                        start_time = parse_time(
+                            row.get("start_time")
+                        )
+
+                        end_time = parse_time(
+                            row.get("end_time")
+                        )
+
+                        if start_time >= end_time:
+                            raise ValueError(
+                                "Start time must be before "
+                                "end time."
+                            )
+
+                        routines.append(
+                            ExamRoutine(
+                                exam=exam,
+                                grade=grade,
+                                subject=subject,
+                                exam_date=exam_date,
+                                start_time=start_time,
+                                end_time=end_time,
+                                room=room,
+                                remarks=remarks,
+                            )
+                        )
+
+                    except Exception as error:
+
+                        errors.append(
+                            f"Row {row_number}: {error}"
+                        )
+
+                # Don't import anything if any row is invalid
+                if errors:
+
+                    return render(
+                        request,
+                        "academics/exam/"
+                        "bulk_upload_routine.html",
+                        {
+                            "form": form,
+                            "exam": exam,
+                            "errors": errors,
+                        }
+                    )
+
+                # Prevent duplicates
+                for routine in routines:
+
+                    exists = ExamRoutine.objects.filter(
+                        exam=exam,
+                        grade=routine.grade,
+                        subject=routine.subject,
+                        exam_date=routine.exam_date,
+                        start_time=routine.start_time,
+                    ).exists()
+
+                    if exists:
+
+                        errors.append(
+                            f"Duplicate found: "
+                            f"Class {routine.grade} - "
+                            f"{routine.subject} - "
+                            f"{routine.exam_date}"
+                        )
+
+                if errors:
+
+                    return render(
+                        request,
+                        "academics/exam/"
+                        "bulk_upload_routine.html",
+                        {
+                            "form": form,
+                            "exam": exam,
+                            "errors": errors,
+                        }
+                    )
+
+                # Atomic import
+                with transaction.atomic():
+
+                    ExamRoutine.objects.bulk_create(
+                        routines,
+                        batch_size=500
+                    )
+
+                messages.success(
+                    request,
+                    f"Successfully imported "
+                    f"{len(routines)} exam routines."
+                )
+
+                return redirect(
+                    "admin:academics_exam_change",
+                    object_id=exam.pk
+                )
+
+            except Exception as error:
+
+                form.add_error(
+                    "file",
+                    str(error)
+                )
+
+    else:
+
+        form = ExamRoutineBulkUploadForm()
+
+    return render(
+        request,
+        "academics/exam/"
+        "bulk_upload_routine.html",
+        {
+            "form": form,
+            "exam": exam,
+        }
+    )

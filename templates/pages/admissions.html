@@ -71,8 +71,8 @@
                                18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
-                <p class="text-xs text-gray-500 mb-0.5">Programs</p>
-                <p class="text-xl font-bold text-gray-900">{{ programs.count }}</p>
+                <p class="text-xs text-gray-500 mb-0.5">Classes</p>
+                <p class="text-xl font-bold text-gray-900">1 &ndash; 10</p>
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
@@ -121,7 +121,8 @@
 
         </div>
 
-        {# ── Available Programs ── #}
+        {% comment %}
+        {# ── Available Programs (commented out - school up to Class 10) ── #}
         {% if programs %}
         <div>
             <div class="flex items-center gap-2 mb-5">
@@ -188,6 +189,7 @@
             </div>
         </div>
         {% endif %}
+        {% endcomment %}
 
         {# ── Admission Process ── #}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

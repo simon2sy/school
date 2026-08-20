@@ -54,6 +54,21 @@
     </div>
 </section>
 
+{# ── Image ── #}
+{% if notice.image %}
+<section class="py-4 mb-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="rounded-2xl shadow-lg mb-4">
+            <img src="{{ notice.image.url }}"
+                 alt="{{ notice.title }}"
+                 class="w-full max-h-[400px] object-contain"
+                 loading="lazy">
+        </div>
+        <p class="text-center text-sm text-gray-600 mt-2">{{ notice.title }}</p>
+    </div>
+</section>
+{% endif %}
+
 {# ── Content ── #}
 <section class="py-10 bg-gray-50 min-h-screen">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

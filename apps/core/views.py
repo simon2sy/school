@@ -35,10 +35,42 @@ def home(request):
         is_published=True
     ).order_by('display_order')[:6]
 
-    # Gallery preview
+    # Gallery preview (featured)
     gallery_images = GalleryImage.objects.filter(
         is_featured=True
     ).select_related('album').order_by('-created_at')[:8]
+
+    # Gallery pictures for the homepage "Inspiring Moments" section.
+    # Uses all published images (not only featured) so the section always
+    # has real pictures to show even before any image is marked featured.
+    gallery_pictures = GalleryImage.objects.filter(
+        is_published=True
+    ).select_related('album').order_by('-created_at')[:6]
+
+    # Inspirational quotes shown in the "Inspiring Moments" section.
+    inspiring_quotes = [
+        {
+            'initial': 'E',
+            'name': 'Emma R.',
+            'role': 'Class 8 Student',
+            'color': 'from-blue-500 to-blue-700',
+            'quote': 'Galaxy has given me the confidence to speak up and the curiosity to keep asking questions.',
+        },
+        {
+            'initial': 'R',
+            'name': 'Rajesh K.',
+            'role': 'Parent',
+            'color': 'from-emerald-500 to-cyan-600',
+            'quote': 'Seeing my child thrive here has been the greatest joy. Galaxy truly cares for every student.',
+        },
+        {
+            'initial': 'S',
+            'name': 'Sita M.',
+            'role': 'Class 10 Student',
+            'color': 'from-amber-500 to-orange-600',
+            'quote': "The teachers don't just teach - they inspire. I've discovered a love for learning here.",
+        },
+    ]
 
     context = {
         'school': school,
@@ -47,6 +79,8 @@ def home(request):
         'active_notices': active_notices,
         'programs': programs,
         'gallery_images': gallery_images,
+        'gallery_pictures': gallery_pictures,
+        'inspiring_quotes': inspiring_quotes,
         'page_title': f"{school.school_name} - Quality Education in Birtamod, Nepal",
         'meta_description': f"Welcome to {school.school_name}, Birtamod, Nepal. Providing quality education under {school.organization_name}.",
     }

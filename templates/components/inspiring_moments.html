@@ -1,0 +1,56 @@
+{# ====== INSPIRING MOMENTS (Pictures & Quotes) ====== #}
+{# Shown directly below the "Why Choose Galaxy" section. Combines a real
+   image gallery strip (gallery_pictures) with inspirational community
+   quotes (inspiring_quotes). Animations use Tailwind utilities already
+   configured in base.html (animate-slide-up + group-hover transitions). #}
+<section class="py-20 bg-gray-50" aria-labelledby="moments-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 animate-slide-up">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-primary-700 text-sm font-semibold rounded-full mb-4">
+                Inspiring Moments
+            </div>
+            <h2 id="moments-heading" class="font-heading font-bold text-gray-900 text-3xl lg:text-4xl mb-4">
+                Pictures &amp; Words of Wisdom
+            </h2>
+            <p class="text-gray-500 max-w-2xl mx-auto">
+                Glimpses of life at Galaxy and the wisdom that guides our community forward.
+            </p>
+        </div>
+
+        {# ---- Pictures: campus moments gallery strip ---- #}
+        {% if gallery_pictures %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-12">
+            {% for image in gallery_pictures %}
+            <div class="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm hover:shadow-md animate-slide-up" style="animation-delay: {% cycle '0' '100' '200' '300' '400' '500' %}ms">
+                <img src="{{ image.image.url }}"
+                     alt="{{ image.title|default:'Gallery image' }}"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                     loading="lazy" />
+                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# ---- Quotes: voices of the community ---- #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {% for q in inspiring_quotes %}
+            <div class="group bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:border-primary-200 transition-all duration-300 animate-slide-up" style="animation-delay: {% cycle '0' '100' '200' %}ms">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br {{ q.color }} text-white flex items-center justify-center font-bold text-xl">{{ q.initial }}</div>
+                    <div>
+                        <p class="font-semibold text-gray-900">{{ q.name }}</p>
+                        <p class="text-xs text-gray-500">{{ q.role }}</p>
+                    </div>
+                </div>
+                <blockquote class="text-gray-600 italic text-sm leading-relaxed">
+                    <svg class="w-6 h-6 text-primary-600 opacity-15 mb-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                    </svg>
+                    <span>"{{ q.quote }}"</span>
+                </blockquote>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

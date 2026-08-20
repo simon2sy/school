@@ -138,12 +138,27 @@ class ExamRoutine(models.Model):
 
     class Meta:
         ordering = ['grade', 'exam_date', 'start_time']
+
         verbose_name = "Exam Routine"
         verbose_name_plural = "Exam Routines"
+
         indexes = [
             models.Index(fields=['exam_date']),
             models.Index(fields=['exam', 'grade']),
             models.Index(fields=['grade']),
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'exam',
+                    'grade',
+                    'subject',
+                    'exam_date',
+                    'start_time',
+                ],
+                name='unique_exam_routine',
+            ),
         ]
 
     def __str__(self):

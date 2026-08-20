@@ -3,7 +3,8 @@
 
 {% block content %}
 
-{# Academic Programs Section #}
+{% comment %}
+{# Academic Programs Section (commented out - school up to Class 10) #}
 <section class="py-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -30,12 +31,13 @@
                     <div class="text-gray-600 text-sm">Total Programs</div>
                 </div>
                 <div class="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                    <div class="font-heading font-bold text-4xl text-green-700">{{ programs|length|default:0 + 10 }}</div>
+                    <div class="font-heading font-bold text-4xl text-green-700">{{ programs|length|add:10 }}</div>
                     <div class="text-gray-600 text-sm">Graduates This Year</div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+{% endcomment %}
 
 {% endblock %}

@@ -102,6 +102,11 @@ class Notice(models.Model):
     title = models.CharField(max_length=300)
     slug = models.SlugField(max_length=300, unique=True, blank=True)
     content = models.TextField(help_text="Notice content")
+    image = models.ImageField(
+        upload_to='notices/images/',
+        null=True, blank=True,
+        help_text="Upload an image to display with the notice"
+    )
     attachment = models.FileField(
         upload_to='notices/attachments/',
         null=True, blank=True,

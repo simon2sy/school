@@ -131,6 +131,8 @@
                             <span class="text-primary-400">›</span>About Us
                         </a>
                     </li>
+                    {% comment %}
+                    Academics quick link removed - programs page (school up to Class 10)
                     <li>
                         <a href="{% url 'academics:programs' %}"
                            class="text-sm text-gray-400 hover:text-white transition-colors
@@ -138,6 +140,7 @@
                             <span class="text-primary-400">›</span>Academics
                         </a>
                     </li>
+                    {% endcomment %}
                     <li>
                         <a href="{% url 'core:admissions' %}"
                            class="text-sm text-gray-400 hover:text-white transition-colors
@@ -187,6 +190,8 @@
             <div>
                 <h3 class="text-white font-semibold font-heading mb-5 text-base">Academics</h3>
                 <ul class="space-y-3">
+                    {% comment %}
+                    Programs link removed (school up to Class 10)
                     <li>
                         <a href="{% url 'academics:programs' %}"
                            class="text-sm text-gray-400 hover:text-white transition-colors
@@ -194,6 +199,7 @@
                             <span class="text-primary-400">›</span>Programs
                         </a>
                     </li>
+                    {% endcomment %}
                     <li>
                         <a href="{% url 'academics:exam_routine' %}"
                            class="text-sm text-gray-400 hover:text-white transition-colors
