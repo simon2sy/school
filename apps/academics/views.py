@@ -140,7 +140,7 @@ def results(request):
                 query = Result.objects.filter(
                     symbol_number__iexact=symbol_number,
                     is_published=True
-                ).select_related('exam')
+                ).select_related('exam').prefetch_related('subject_marks')
 
                 if exam_id:
                     query = query.filter(exam_id=exam_id)

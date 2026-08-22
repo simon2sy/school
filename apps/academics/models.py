@@ -233,3 +233,51 @@ class Result(models.Model):
             'ABSENT': 'yellow',
         }
         return colors.get(self.result_status, 'gray')
+
+
+class SubjectMark(models.Model):
+    """Marks obtained by a student for an individual subject in an exam.
+
+    Each row ties one subject to a published result, so the result card can
+    show subject-wise marks instead of only the overall total.
+    """
+    result = models.ForeignKey(
+        Result,
+        on_delete=models.CASCADE,
+        related_name='subject_marks',
+        help_text="The result (student/exam) these subject marks belong to"
+    )
+    subject = models.CharField(
+        max_length=200,
+        help_text="e.g., English, Mathematics, Science"
+    )
+    full_marks = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Maximum marks for this subject (optional)"
+    )
+    obtained_marks = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Marks obtained by the student in this subject"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['subject']
+        verbose_name = "Subject Mark"
+        verbose_name_plural = "Subject Marks"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['result', 'subject'],
+                name='unique_result_subject_mark',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.subject}: {self.obtained_marks}"

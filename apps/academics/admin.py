@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path
-from .models import AcademicProgram, Exam, ExamRoutine, Result
+from .models import AcademicProgram, Exam, ExamRoutine, Result, SubjectMark
 
 from .views import bulk_upload_exam_routine
 class ExamRoutineInline(admin.TabularInline):
@@ -134,6 +134,13 @@ class ExamRoutineAdmin(admin.ModelAdmin):
     date_hierarchy = 'exam_date'
 
 
+class ResultSubjectMarkInline(admin.TabularInline):
+    """Inline to enter each subject's marks that make up a result."""
+    model = SubjectMark
+    extra = 1
+    fields = ('subject', 'full_marks', 'obtained_marks')
+
+
 @admin.register(Result)
 class ResultAdmin(admin.ModelAdmin):
     list_display = [
@@ -150,6 +157,7 @@ class ResultAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
     autocomplete_fields = ['exam']
     date_hierarchy = 'published_at'
+    inlines = [ResultSubjectMarkInline]
 
     fieldsets = (
         ('Student Information', {
