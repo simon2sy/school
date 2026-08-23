@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 import uuid
-from apps.core.image_utils import optimize_image
+from apps.core.image_utils import optimize_image, image_field_unchanged
 
 
 class AcademicProgram(models.Model):
@@ -51,7 +51,8 @@ class AcademicProgram(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self._generate_unique_slug()
-        optimize_image(self.featured_image)
+        if not image_field_unchanged(self, 'featured_image'):
+            optimize_image(self.featured_image)
         super().save(*args, **kwargs)
 
     def _generate_unique_slug(self):

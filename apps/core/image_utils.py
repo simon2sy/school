@@ -15,6 +15,37 @@ from django.core.files.base import ContentFile
 from PIL import Image, ImageOps
 
 
+def image_field_unchanged(instance, field_name):
+    """Return True if the given image field hasn't been replaced.
+
+    Only uploads are heavy to process, so this lets ``save()`` skip
+    re-encoding when the staff member merely edits text (e.g. a title or
+    description) and leaves the picture alone. New rows are always optimized.
+
+    Compares the current field value against the row already in the database
+    (by name) instead of relying on internal ``FieldFile`` state that can vary
+    across Django versions.
+    """
+    field = getattr(instance, field_name, None)
+    if field is None:
+        return True
+    # A brand-new object (or an object not yet persisted) should be optimized.
+    if instance._state.adding or instance.pk is None:
+        return False
+    current_name = field.name or ""
+    try:
+        prev_name = (
+            type(instance)
+            .objects.filter(pk=instance.pk)
+            .values_list(field_name, flat=True)
+            .first()
+        )
+    except Exception:
+        # If we can't determine the previous value, be safe and optimize.
+        return False
+    return current_name == (prev_name or "")
+
+
 def optimize_image(image_field, max_width=1600, max_height=1600, quality=82):
     """Resize and re-compress a Django ``ImageFieldFile`` in place.
 

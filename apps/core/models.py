@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from apps.core.image_utils import optimize_image
+from apps.core.image_utils import optimize_image, image_field_unchanged
 
 
 class SchoolSettings(models.Model):
@@ -125,11 +125,16 @@ class SchoolSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        # Optimize uploads (hero/logo/principal) before storing. The favicon is
-        # intentionally left untouched — it is tiny by nature.
-        optimize_image(self.hero_image, max_width=1920, max_height=1080)
-        optimize_image(self.logo, max_width=600, max_height=600)
-        optimize_image(self.principal_photo, max_width=800, max_height=800)
+        # Optimize uploads (hero/logo/principal) while storing. The favicon is
+        # intentionally left untouched — it is tiny by nature. Each field is
+        # only re-encoded when it was actually replaced, so text-only edits to
+        # the settings don't recompress the images every time.
+        if not image_field_unchanged(self, 'hero_image'):
+            optimize_image(self.hero_image, max_width=1920, max_height=1080)
+        if not image_field_unchanged(self, 'logo'):
+            optimize_image(self.logo, max_width=600, max_height=600)
+        if not image_field_unchanged(self, 'principal_photo'):
+            optimize_image(self.principal_photo, max_width=800, max_height=800)
         super().save(*args, **kwargs)
         # Refresh the cached copy so edits show up immediately.
         cache.set(type(self).CACHE_KEY, self)

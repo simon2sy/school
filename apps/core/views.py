@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 from .models import SchoolSettings
 from apps.content.models import NewsArticle, Event, Notice, GalleryImage
 from apps.academics.models import AcademicProgram
 
 
+@cache_page(60 * 5)
 def home(request):
     """Homepage view with all sections."""
     school = SchoolSettings.get_settings()
@@ -35,17 +37,18 @@ def home(request):
         is_published=True
     ).order_by('display_order')[:6]
 
-    # Gallery preview (featured)
-    gallery_images = GalleryImage.objects.filter(
-        is_featured=True
-    ).select_related('album').order_by('-created_at')[:8]
-
-    # Gallery pictures for the homepage "Inspiring Moments" section.
-    # Uses all published images (not only featured) so the section always
-    # has real pictures to show even before any image is marked featured.
-    gallery_pictures = GalleryImage.objects.filter(
-        is_published=True
-    ).select_related('album').order_by('-created_at')[:6]
+    # One gallery query feeds both homepage sections. Featured images power the
+    # "Life at Galaxy" preview; otherwise the most recent published photos are
+    # used so the section is never empty. The "Inspiring Moments" strip shows
+    # the latest published shots. (Featured images are a subset of published.)
+    recent_images = list(
+        GalleryImage.objects.filter(is_published=True)
+        .select_related('album')
+        .order_by('-created_at')[:8]
+    )
+    featured = [img for img in recent_images if img.is_featured][:8]
+    gallery_images = featured or recent_images
+    gallery_pictures = recent_images[:6]
 
     # Inspirational quotes shown in the "Inspiring Moments" section.
     inspiring_quotes = [
