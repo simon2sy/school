@@ -113,7 +113,40 @@
                                placeholder="e.g., 425.50"
                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     </div>
-                    <div class="md:col-span-2">
+                <div class="md:col-span-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Subject-wise Marks</label>
+                        <button type="button" id="add-subject-btn" class="text-xs text-primary-700 hover:text-primary-900 font-medium flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Subject
+                        </button>
+                    </div>
+                    <div id="subjects-container" class="space-y-2">
+                        <div class="subject-row flex items-end gap-2">
+                            <div class="flex-1">
+                                <input type="text" name="subject[]" placeholder="Subject name"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div class="w-28">
+                                <input type="number" name="full_marks[]" step="any" min="0" placeholder="Full marks"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div class="w-28">
+                                <input type="number" name="obtained_marks[]" step="any" min="0" placeholder="Obtained"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <button type="button" class="remove-subject-btn px-3 py-2 text-gray-400 hover:text-red-600 transition-colors" title="Remove">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Leave fields blank if not applicable. Total marks will be auto-calculated from obtained marks if not provided.</p>
+                </div>
+                <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Result Status <span class="text-red-500">*</span></label>
                         <div class="grid grid-cols-3 gap-2">
                             {% for value, label in result_status_choices %}
@@ -151,7 +184,7 @@
                 </div>
                 <span class="text-sm font-medium text-gray-600">{{ results|length }} result{{ results|length|pluralize }}</span>
             </div>
-            <div class="overflow-x-auto">
+<div class="overflow-x-auto">
                 <table class="w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
@@ -160,6 +193,7 @@
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Class</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Total Marks</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subjects</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Published</th>
                         </tr>
                     </thead>
@@ -171,18 +205,34 @@
                             <td class="px-4 py-3 text-sm">Class {{ result.grade }}</td>
                             <td class="px-4 py-3 text-sm">
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium
-                                       {% if result.result_status == 'PASS' %}bg-green-100 text-green-800
-                                        {% elif result.result_status == 'FAIL' %}bg-red-100 text-red-800
-                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {% if result.result_status == 'PASS' %}bg-green-100 text-green-800
+                                         {% elif result.result_status == 'FAIL' %}bg-red-100 text-red-800
+                                         {% else %}bg-yellow-100 text-yellow-800{% endif %}">
                                     {{ result.get_result_status_display }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-sm">{{ result.total_marks|default:"-" }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                {% if result.subject_marks.all %}
+                                <div class="space-y-1">
+                                    {% for sm in result.subject_marks.all %}
+                                    <div class="text-xs">
+                                        <span class="font-medium">{{ sm.subject }}</span>
+                                        <span class="text-gray-500">
+                                            ({{ sm.obtained_marks|default:"?" }}/{{ sm.full_marks|default:"?" }})
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-gray-400 text-xs">No subjects</span>
+                                {% endif %}
+                            </td>
                             <td class="px-4 py-3 text-sm text-gray-500">{{ result.published_at|date:"d M Y, h:i A"|default:"-" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td class="px-4 py-6 text-center text-gray-500" colspan="6">No results yet for this class.</td>
+                            <td class="px-4 py-6 text-center text-gray-500" colspan="7">No results yet for this class.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -191,4 +241,68 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add subject row function
+        function addSubjectRow() {
+            const container = document.getElementById('subjects-container');
+            const row = document.createElement('div');
+            row.className = 'subject-row flex items-end gap-2';
+            row.innerHTML = `
+                <div class="flex-1">
+                    <input type="text" name="subject[]" placeholder="Subject name"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div class="w-28">
+                    <input type="number" name="full_marks[]" step="any" min="0" placeholder="Full marks"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div class="w-28">
+                    <input type="number" name="obtained_marks[]" step="any" min="0" placeholder="Obtained"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <button type="button" class="remove-subject-btn px-3 py-2 text-gray-400 hover:text-red-600 transition-colors" title="Remove">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            `;
+            container.appendChild(row);
+            
+            // Attach remove event to the new button
+            const removeBtn = row.querySelector('.remove-subject-btn');
+            removeBtn.addEventListener('click', function() {
+                if (document.querySelectorAll('.subject-row').length > 1) {
+                    row.remove();
+                } else {
+                    // Clear fields instead of removing the last row
+                    const inputs = row.querySelectorAll('input');
+                    inputs.forEach(input => input.value = '');
+                }
+            });
+        }
+        
+        // Attach event to the add button
+        const addBtn = document.getElementById('add-subject-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', addSubjectRow);
+        }
+        
+        // Attach remove event to existing remove buttons
+        document.querySelectorAll('.remove-subject-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = btn.closest('.subject-row');
+                if (document.querySelectorAll('.subject-row').length > 1) {
+                    row.remove();
+                } else {
+                    const inputs = row.querySelectorAll('input');
+                    inputs.forEach(input => input.value = '');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

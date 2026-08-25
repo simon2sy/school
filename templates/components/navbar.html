@@ -86,7 +86,7 @@
             </nav>
 
 <div class="flex items-center gap-3">
-            {% if user.is_authenticated and user.is_staff %}
+            {% if user.is_authenticated and user.is_staff and user.is_superuser %}
             {# ≜ Admin Dropdown ≜ #}
             <div class="relative group">
                 <button class="flex items-center gap-2 px-4 py-2 bg-primary-700 text-white text-sm font-medium rounded-lg hover:bg-primary-800 transition-all duration-200">
@@ -97,7 +97,9 @@
                 </button>
                 <div class="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <a href="/admin/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Dashboard</a>
+                    {% if user.is_superuser %}
                     <a href="{% url 'academics:exam_routine_add' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Exam Routines</a>
+                    {% endif %}
                     <a href="{% url 'academics:exam_result_add' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Exam Results</a>
                     <a href="{% url 'content:notice_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Notices</a>
                     <div class="border-t border-gray-100"></div>

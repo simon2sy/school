@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404,redirect
 from django.utils import timezone
 from django.contrib import messages
-from .models import AcademicProgram, Exam, ExamRoutine, Result
+from .models import AcademicProgram, Exam, ExamRoutine, Result, SubjectMark
 from apps.core.models import SchoolSettings
 from .forms import ResultSearchForm,ExamRoutineBulkUploadForm
 from django.db import transaction
@@ -535,14 +535,14 @@ def bulk_upload_exam_routine(request, exam_id):
 
 
 @staff_member_required
-def exam_routine_add(request, exam_id=None):
+def exam_routine_add(request):
     """Admin page to add exam routines by class.
 
-    Supports three workflows:
-    1. Bulk upload via CSV / Excel (uses form file input).
-    2. Manual entry (one routine at a time) for non-technical users.
-    3. Class-wise entry (add all subjects for one class at once) for quick scheduling.
+    Only accessible by superusers (admins). Teachers can only add marks/results.
     """
+    if not request.user.is_superuser:
+        messages.error(request, "You don't have permission to add exam routines. Only administrators can access this page.")
+        return redirect('core:home')
     school = SchoolSettings.get_settings()
 
     exams = Exam.objects.all().order_by('-start_date')
@@ -835,7 +835,8 @@ def exam_result_add(request):
                             "Total marks must be a valid number."
                         )
 
-                Result.objects.create(
+                # Create the result first
+                result = Result.objects.create(
                     exam=selected_exam,
                     student_name=student_name,
                     symbol_number=symbol_number,
@@ -845,6 +846,58 @@ def exam_result_add(request):
                     is_published=True,
                     published_at=timezone.now(),
                 )
+
+                # Process subject-wise marks
+                subjects = request.POST.getlist('subject[]')
+                full_marks_list = request.POST.getlist('full_marks[]')
+                obtained_marks_list = request.POST.getlist('obtained_marks[]')
+
+                # Validate and create subject marks
+                if subjects and any(s.strip() for s in subjects):
+                    total_obtained = 0
+                    valid_subjects = 0
+                    
+                    for i, subject in enumerate(subjects):
+                        subject = subject.strip()
+                        if not subject:
+                            continue
+                            
+                        full_marks = None
+                        obtained_marks = None
+                        
+                        # Get full marks if provided
+                        if i < len(full_marks_list) and full_marks_list[i].strip():
+                            try:
+                                full_marks = float(full_marks_list[i])
+                            except ValueError:
+                                raise ValueError(f"Full marks for '{subject}' must be a valid number.")
+                        
+                        # Get obtained marks if provided
+                        if i < len(obtained_marks_list) and obtained_marks_list[i].strip():
+                            try:
+                                obtained_marks = float(obtained_marks_list[i])
+                                total_obtained += obtained_marks
+                                valid_subjects += 1
+                            except ValueError:
+                                raise ValueError(f"Obtained marks for '{subject}' must be a valid number.")
+                        
+                        # Create SubjectMark
+                        SubjectMark.objects.create(
+                            result=result,
+                            subject=subject,
+                            full_marks=full_marks,
+                            obtained_marks=obtained_marks
+                        )
+                    
+                    # Update total_marks if we have obtained marks for at least one subject
+                    if valid_subjects > 0 and total_marks is None:
+                        result.total_marks = total_obtained
+                        result.save()
+                elif total_marks is not None:
+                    # If no subjects provided but total_marks is given, keep it
+                    pass
+                # If neither subjects nor total_marks provided, that's okay (total_marks can be null)
+
                 messages.success(
                     request,
                     f"Result added: {student_name} "
@@ -860,7 +913,7 @@ def exam_result_add(request):
     if selected_exam:
         results = Result.objects.filter(
             exam=selected_exam
-        ).order_by('-published_at')
+        ).prefetch_related('subject_marks').order_by('-published_at')
         if selected_grade:
             results = results.filter(grade=selected_grade)
 

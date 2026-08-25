@@ -1,13 +1,11 @@
 from django.shortcuts import render
 from django.utils import timezone
-from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 from .models import SchoolSettings
 from apps.content.models import NewsArticle, Event, Notice, GalleryImage
 from apps.academics.models import AcademicProgram
 
 
-@cache_page(60 * 5)
 def home(request):
     """Homepage view with all sections."""
     school = SchoolSettings.get_settings()
