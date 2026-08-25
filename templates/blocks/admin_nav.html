@@ -1,0 +1,54 @@
+{# Admin Login Buttons #}
+<div class="flex items-center gap-3 ml-6">
+    {% if user.is_authenticated and user.is_staff %}
+    {# Admin Menu #}
+    <div class="relative group">
+        <button class="flex items-center gap-2 px-4 py-2 bg-primary-700 text-white text-sm font-medium rounded-lg hover:bg-primary-800 transition-all duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            Admin
+        </button>
+        <div class="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <a href="{% url 'admin:index' }" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'content:notice_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Notices
+            </a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Exam Routines
+            </a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m2-3a2 2 0 012 2h7a2 2 0 012-2v-6m-6-3h6m4-6v6m6-6a2 2 0 100-4 2 2 0 000 4z"/>
+                </svg>
+                Exam Results
+            </a>
+            <a href="{% url 'auth:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l3-3l3 3m0 9l-3 3l-3-3m9-3h-3a2 2 0 01-2-2H5a2 2 0 01-2-2m9 3a2 2 0 012 2v3a2 2 0 01-2 2h-3a2 2 0 01-2-2v-3m-6 0a2 2 0 100-4 2 2 0 000 4z"/>
+                </svg>
+                Logout
+            </a>
+        </div>
+    </div>
+    {% else %}
+    {# Login Link #}
+    <a href="{% url 'auth:login' %}" class="flex items-center gap-2 px-4 py-2 bg-primary-700 text-white text-sm font-medium rounded-lg hover:bg-primary-800 transition-all duration-200">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 014 4v.5m-.383-1.683A5.502 5.502 0 0112 16a5.502 5.502 0 01-3.646-2.815m-.383 1.683L2 7m10.37 5.35a5 5 0 117.778 1.058m.616-1.059L16 7z"/>
+        </svg>
+        Login
+    </a>
+    {% endif %}
+</div>

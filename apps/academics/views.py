@@ -532,3 +532,351 @@ def bulk_upload_exam_routine(request, exam_id):
             "exam": exam,
         }
     )
+
+
+@staff_member_required
+def exam_routine_add(request, exam_id=None):
+    """Admin page to add exam routines by class.
+
+    Supports three workflows:
+    1. Bulk upload via CSV / Excel (uses form file input).
+    2. Manual entry (one routine at a time) for non-technical users.
+    3. Class-wise entry (add all subjects for one class at once) for quick scheduling.
+    """
+    school = SchoolSettings.get_settings()
+
+    exams = Exam.objects.all().order_by('-start_date')
+    selected_exam = None
+    selected_grade = request.GET.get('grade', '1')
+    routines = []
+    manual_form_errors = []
+
+    if exam_id:
+        selected_exam = get_object_or_404(Exam, pk=exam_id)
+    elif request.GET.get('exam'):
+        selected_exam = get_object_or_404(
+            Exam, pk=request.GET.get('exam')
+        )
+    elif exams.exists():
+        selected_exam = exams.first()
+
+    # ── Manual single-routine entry (easy form) ──
+    if request.method == 'POST':
+        if request.POST.get('action') == 'add_manual':
+            if not selected_exam:
+                messages.error(request, "Please select an exam first.")
+            else:
+                subject = (request.POST.get('subject') or '').strip()
+                exam_date_raw = (request.POST.get('exam_date') or '').strip()
+                start_time_raw = (request.POST.get('start_time') or '').strip()
+                end_time_raw = (request.POST.get('end_time') or '').strip()
+                room = (request.POST.get('room') or '').strip()
+                remarks = (request.POST.get('remarks') or '').strip()
+                manual_grade = (request.POST.get('grade') or selected_grade or '').strip()
+
+                try:
+                    if not subject:
+                        raise ValueError("Subject is required.")
+                    if not exam_date_raw:
+                        raise ValueError("Exam date is required.")
+                    if not start_time_raw or not end_time_raw:
+                        raise ValueError("Start and end time are required.")
+
+                    try:
+                        exam_date = datetime.strptime(
+                            exam_date_raw, "%Y-%m-%d"
+                        ).date()
+                    except ValueError:
+                        raise ValueError("Invalid date format.")
+
+                    try:
+                        start_time = datetime.strptime(
+                            start_time_raw, "%H:%M"
+                        ).time()
+                        end_time = datetime.strptime(
+                            end_time_raw, "%H:%M"
+                        ).time()
+                    except ValueError:
+                        raise ValueError(
+                            "Invalid time format. Use HH:MM (24h)."
+                        )
+
+                    if start_time >= end_time:
+                        raise ValueError(
+                            "Start time must be before end time."
+                        )
+
+                    valid_grades = dict(ExamRoutine.GRADE_CHOICES)
+                    if manual_grade not in valid_grades:
+                        raise ValueError("Please choose a valid class.")
+
+                    if ExamRoutine.objects.filter(
+                        exam=selected_exam,
+                        grade=manual_grade,
+                        subject=subject,
+                        exam_date=exam_date,
+                        start_time=start_time,
+                    ).exists():
+                        raise ValueError(
+                            "A routine with the same class, subject, "
+                            "date and start time already exists."
+                        )
+
+                    ExamRoutine.objects.create(
+                        exam=selected_exam,
+                        grade=manual_grade,
+                        subject=subject,
+                        exam_date=exam_date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        room=room,
+                        remarks=remarks,
+                    )
+                    messages.success(
+                        request,
+                        f"Routine added: Class {manual_grade} - "
+                        f"{subject} on {exam_date}."
+                    )
+                    # Refresh selected_grade so the new row is visible
+                    selected_grade = manual_grade
+
+                except ValueError as error:
+                    manual_form_errors.append(str(error))
+                    messages.error(request, str(error))
+
+        # ── Class-wise routine entry (add all subjects for one class) ──
+        elif request.POST.get('action') == 'add_class_routine':
+            if not selected_exam:
+                messages.error(request, "Please select an exam first.")
+            else:
+                # Get form data arrays
+                subjects = request.POST.getlist('subject[]')
+                start_times = request.POST.getlist('start_time[]')
+                end_times = request.POST.getlist('end_time[]')
+                rooms = request.POST.getlist('room[]')
+                remarks = request.POST.getlist('remarks[]')
+                manual_grade = (request.POST.get('grade') or selected_grade or '').strip()
+                exam_date_raw = (request.POST.get('exam_date') or '').strip()
+
+                try:
+                    if not manual_grade:
+                        raise ValueError("Please select a class.")
+                    if not exam_date_raw:
+                        raise ValueError("Exam date is required.")
+                    
+                    try:
+                        exam_date = datetime.strptime(
+                            exam_date_raw, "%Y-%m-%d"
+                        ).date()
+                    except ValueError:
+                        raise ValueError("Invalid date format. Use YYYY-MM-DD.")
+                    
+                    valid_grades = dict(ExamRoutine.GRADE_CHOICES)
+                    if manual_grade not in valid_grades:
+                        raise ValueError("Please choose a valid class.")
+                    
+                    # Check if we have at least one subject
+                    if not subjects or all(not s.strip() for s in subjects):
+                        raise ValueError("Please enter at least one subject.")
+                    
+                    # Process each subject
+                    created_count = 0
+                    errors = []
+                    
+                    for i, subject in enumerate(subjects):
+                        subject = subject.strip()
+                        if not subject:
+                            continue  # Skip empty subjects
+                        
+                        start_time_str = start_times[i] if i < len(start_times) else ''
+                        end_time_str = end_times[i] if i < len(end_times) else ''
+                        room_str = rooms[i] if i < len(rooms) else ''
+                        remark_str = remarks[i] if i < len(remarks) else ''
+                        
+                        if not start_time_str or not end_time_str:
+                            errors.append(f"Row {i+1}: Start and end time are required for '{subject}'.")
+                            continue
+                        
+                        try:
+                            start_time = datetime.strptime(start_time_str, "%H:%M").time()
+                            end_time = datetime.strptime(end_time_str, "%H:%M").time()
+                        except ValueError:
+                            errors.append(f"Row {i+1}: Invalid time format for '{subject}'. Use HH:MM.")
+                            continue
+                        
+                        if start_time >= end_time:
+                            errors.append(f"Row {i+1}: Start time must be before end time for '{subject}'.")
+                            continue
+                        
+                        # Check for duplicate
+                        if ExamRoutine.objects.filter(
+                            exam=selected_exam,
+                            grade=manual_grade,
+                            subject=subject,
+                            exam_date=exam_date,
+                            start_time=start_time,
+                        ).exists():
+                            errors.append(f"Row {i+1}: Duplicate routine for '{subject}' at {start_time}.")
+                            continue
+                        
+                        # Create the routine
+                        ExamRoutine.objects.create(
+                            exam=selected_exam,
+                            grade=manual_grade,
+                            subject=subject,
+                            exam_date=exam_date,
+                            start_time=start_time,
+                            end_time=end_time,
+                            room=room_str.strip(),
+                            remarks=remark_str.strip(),
+                        )
+                        created_count += 1
+                    
+                    if errors:
+                        for error in errors:
+                            manual_form_errors.append(error)
+                            messages.error(request, error)
+                    else:
+                        messages.success(
+                            request,
+                            f"Successfully added {created_count} routines for Class {manual_grade} on {exam_date}."
+                        )
+                        # Refresh selected_grade so the new rows are visible
+                        selected_grade = manual_grade
+                        
+                except ValueError as error:
+                    manual_form_errors.append(str(error))
+                    messages.error(request, str(error))
+
+    # Refresh routines list for the current exam + grade
+    if selected_exam:
+        routines = ExamRoutine.objects.filter(
+            exam=selected_exam
+        ).order_by('grade', 'exam_date', 'start_time')
+        if selected_grade:
+            routines = routines.filter(grade=selected_grade)
+
+    context = {
+        'school': school,
+        'exams': exams,
+        'selected_exam': selected_exam,
+        'selected_grade': selected_grade,
+        'routines': routines,
+        'grade_choices': ExamRoutine.GRADE_CHOICES,
+        'manual_form_errors': manual_form_errors,
+        'page_title': 'Add Exam Routine',
+    }
+    return render(
+        request,
+        'academics/admin_exam_routine.html',
+        context
+    )
+
+
+@staff_member_required
+def exam_result_add(request):
+    """Admin page to add exam results.
+
+    Supports two workflows:
+    1. Bulk upload via CSV / Excel (uses form file input).
+    2. Manual entry (one result at a time) for non-technical users.
+    """
+    school = SchoolSettings.get_settings()
+
+    exams = Exam.objects.all().order_by('-start_date')
+    selected_exam = None
+    selected_grade = request.GET.get('grade', '1')
+    results = []
+    manual_form_errors = []
+
+    if request.GET.get('exam'):
+        selected_exam = get_object_or_404(
+            Exam, pk=request.GET.get('exam')
+        )
+
+    # ── Manual single-result entry (easy form) ──
+    if request.method == 'POST' and request.POST.get('action') == 'add_manual':
+        if not selected_exam:
+            messages.error(request, "Please select an exam first.")
+        else:
+            student_name = (request.POST.get('student_name') or '').strip()
+            symbol_number = (request.POST.get('symbol_number') or '').strip()
+            manual_grade = (request.POST.get('grade') or selected_grade or '').strip()
+            total_marks_raw = (request.POST.get('total_marks') or '').strip()
+            result_status = request.POST.get('result_status', 'PASS')
+
+            try:
+                if not student_name:
+                    raise ValueError("Student name is required.")
+                if not symbol_number:
+                    raise ValueError("Symbol number is required.")
+                if not manual_grade:
+                    raise ValueError("Please choose a class.")
+
+                valid_grades = dict(ExamRoutine.GRADE_CHOICES)
+                if manual_grade not in valid_grades:
+                    raise ValueError("Please choose a valid class.")
+
+                if Result.objects.filter(
+                    exam=selected_exam,
+                    symbol_number__iexact=symbol_number
+                ).exists():
+                    raise ValueError(
+                        f"A result for symbol number "
+                        f"'{symbol_number}' already exists for this exam."
+                    )
+
+                total_marks = None
+                if total_marks_raw:
+                    try:
+                        total_marks = float(total_marks_raw)
+                    except ValueError:
+                        raise ValueError(
+                            "Total marks must be a valid number."
+                        )
+
+                Result.objects.create(
+                    exam=selected_exam,
+                    student_name=student_name,
+                    symbol_number=symbol_number,
+                    grade=manual_grade,
+                    total_marks=total_marks,
+                    result_status=result_status,
+                    is_published=True,
+                    published_at=timezone.now(),
+                )
+                messages.success(
+                    request,
+                    f"Result added: {student_name} "
+                    f"({symbol_number})."
+                )
+                selected_grade = manual_grade
+
+            except ValueError as error:
+                manual_form_errors.append(str(error))
+                messages.error(request, str(error))
+
+    # Refresh results list for the current exam + grade
+    if selected_exam:
+        results = Result.objects.filter(
+            exam=selected_exam
+        ).order_by('-published_at')
+        if selected_grade:
+            results = results.filter(grade=selected_grade)
+
+    context = {
+        'school': school,
+        'exams': exams,
+        'selected_exam': selected_exam,
+        'selected_grade': selected_grade,
+        'results': results,
+        'grade_choices': ExamRoutine.GRADE_CHOICES,
+        'result_status_choices': Result.RESULT_STATUS_CHOICES,
+        'manual_form_errors': manual_form_errors,
+        'page_title': 'Add Exam Result',
+    }
+    return render(
+        request,
+        'academics/admin_exam_result.html',
+        context
+    )

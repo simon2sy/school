@@ -9,10 +9,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 INSECURE_FALLBACK_KEY = "django-insecure-fallback-key-change-in-production"
 SECRET_KEY = os.getenv("SECRET_KEY", INSECURE_FALLBACK_KEY)
+DEBUG = True
 
 # DEBUG defaults ON for local development. Set DEBUG=False in your server .env
 # so the app runs hardened (security middleware + secret-key guard below).
-DEBUG = os.getenv("DEBUG", "True") == "True"
+
 
 # Refuse to boot in production with a weak/placeholder secret key.
 if not DEBUG and SECRET_KEY == INSECURE_FALLBACK_KEY:
@@ -48,7 +49,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
-    # SecurityMiddleware must be first. Whitenoise goes right after it so
+    # SecurityMiddleware must be first. Whienoise goes right after it so
     # static files are served through WSGI (no separate static mapping needed).
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',

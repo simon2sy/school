@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Exam Routine - {{ school.school_name }}{% endblock %}
+
+{% block content %}
+{# Hero Section #}
+<section class="bg-gradient-to-br from-primary-800 to-primary-600 py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3 mb-4">
+            <a href="{% url 'academics:exam_routine' %}"
+               class="inline-flex items-center gap-2 text-primary-200 hover:text-white text-sm font-medium transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </a>
+        </div>
+        <h1 class="font-heading font-bold text-2xl lg:text-3xl text-white">Add Exam Routine</h1>
+        <p class="text-primary-200 text-sm mt-1">Easily add routines by class &mdash; one at a time or in bulk</p>
+    </div>
+</section>
+
+{# Main Content #}
+<section class="py-8 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {# Messages #}
+        {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                    <div class="px-4 py-3 rounded-lg text-sm
+                                {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                                {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                                {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Filter Section #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+            <form method="get" class="flex flex-wrap items-end gap-4">
+                <div class="flex-1 min-w-[220px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Exam</label>
+                    <select name="exam" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        {% for exam in exams %}
+                            <option value="{{ exam.pk }}" {% if selected_exam.pk == exam.pk %}selected{% endif %}>
+                                {{ exam.name }} ({{ exam.academic_year }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">View Class</label>
+                    <select name="grade" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        {% for grade_code, grade_label in grade_choices %}
+                            <option value="{{ grade_code }}" {% if selected_grade == grade_code %}selected{% endif %}>
+                                {{ grade_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        {# Tabs: Manual vs Bulk Upload #}
+        <div x-data="routineTabs()" x-init="init()" class="mb-6">
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="flex gap-2">
+                    <button type="button" @click="tab = 'class'"
+                            :class="tab === 'class' ? 'border-primary-700 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors">
+                        Add Routine for One Class
+                    </button>
+                    <button type="button" @click="tab = 'manual'"
+                            :class="tab === 'manual' ? 'border-primary-700 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors">
+                        Add Single Subject
+                    </button>
+                    <button type="button" @click="tab = 'bulk'"
+                            :class="tab === 'bulk' ? 'border-primary-700 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors">
+                        Bulk Upload (CSV / Excel)
+                    </button>
+                </nav>
+            </div>
+
+            {# ── Class-Wise Routine Entry (add all subjects for one class) ── #}
+            <div x-show="tab === 'class'" x-cloak
+                 class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-1">Add All Subjects for One Class</h2>
+                <p class="text-sm text-gray-500 mb-4">Pick a class, date, and add each subject. Click "Add Row" to add more subjects.</p>
+
+                {% if manual_form_errors %}
+                    <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200">
+                        {% for err in manual_form_errors %}<div>{{ err }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_class_routine">
+                    <input type="hidden" name="exam" value="{{ selected_exam.pk }}">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Class <span class="text-red-500">*</span></label>
+                            <select name="grade" required
+                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                {% for grade_code, grade_label in grade_choices %}
+                                    <option value="{{ grade_code }}" {% if selected_grade == grade_code %}selected{% endif %}>
+                                        {{ grade_label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Exam Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="exam_date" required
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">#</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">Subject <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">Start Time <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">End Time <span class="text-red-500">*</span></th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">Room</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">Remarks</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-700">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subject-rows">
+                                <tr>
+                                    <td class="px-3 py-2 text-center text-sm text-gray-500">1</td>
+                                    <td class="px-3 py-2"><input type="text" name="subject[]" required placeholder="e.g., Mathematics" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+                                    <td class="px-3 py-2"><input type="time" name="start_time[]" required class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+                                    <td class="px-3 py-2"><input type="time" name="end_time[]" required class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+                                    <td class="px-3 py-2"><input type="text" name="room[]" placeholder="e.g., Room 5" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+                                    <td class="px-3 py-2"><input type="text" name="remarks[]" placeholder="Any note?" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <button type="button" onclick="addSubjectRow()"
+                                                class="px-2 py-1 bg-primary-700 text-white text-xs rounded hover:bg-primary-800">
+                                            Add
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="addSubjectRow()"
+                                class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                            Add Subject Row
+                        </button>
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors">
+                            Save All Subjects
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {# ── Manual Single-Subject Entry ── #}
+            <div x-show="tab === 'manual'" x-cloak
+                 class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-1">Add a Single Routine</h2>
+                <p class="text-sm text-gray-500 mb-4">Fill in the form below &mdash; the routine is saved immediately.</p>
+
+                {% if manual_form_errors %}
+                    <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200">
+                        {% for err in manual_form_errors %}<div>{{ err }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_manual">
+                    <input type="hidden" name="exam" value="{{ selected_exam.pk }}">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Class <span class="text-red-500">*</span></label>
+                            <select name="grade" required
+                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                {% for grade_code, grade_label in grade_choices %}
+                                    <option value="{{ grade_code }}" {% if selected_grade == grade_code %}selected{% endif %}>
+                                        {{ grade_label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Subject <span class="text-red-500">*</span></label>
+                            <input type="text" name="subject" required
+                                   placeholder="e.g., Mathematics, English, Science"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Exam Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="exam_date" required
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Start Time <span class="text-red-500">*</span></label>
+                                <input type="time" name="start_time" required
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">End Time <span class="text-red-500">*</span></label>
+                                <input type="time" name="end_time" required
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Room / Hall</label>
+                            <input type="text" name="room"
+                                   placeholder="e.g., Room 101, Hall A"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                            <input type="text" name="remarks"
+                                   placeholder="e.g., Bring calculator"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-2">
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors">
+                            Add Routine
+                        </button>
+                        <span class="text-xs text-gray-500">Tip: stay on this page and add more rows one by one.</span>
+                    </div>
+                </form>
+            </div>
+
+            {# ── Bulk Upload Form ── #}
+            <div x-show="tab === 'bulk'" x-cloak
+                 class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-1">Upload Bulk Routine (CSV / Excel)</h2>
+                <p class="text-sm text-gray-500 mb-4">For staff comfortable with spreadsheets. Required columns: <code>grade, subject, exam_date, start_time, end_time</code>. Optional: <code>room, remarks</code>.</p>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex-1 min-w-[300px]">
+                            <input type="file" name="file" accept=".csv,.xlsx,.xls"
+                                   class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+                        </div>
+                        <button type="submit"
+                                class="px-6 py-2 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors">
+                            Upload Routine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Existing Routines #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">Existing Routines</h2>
+                    <p class="text-sm text-gray-500">Class {{ selected_grade }} &middot; {{ selected_exam.name }}</p>
+                </div>
+                <span class="text-sm font-medium text-gray-600">{{ routines|length }} routine{{ routines|length|pluralize }}</span>
+            </div>
+            {% if routines %}
+                <div class="overflow-x-auto">
+                    <table class="w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Class</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subject</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Room</th>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for routine in routines %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm font-medium">Class {{ routine.grade }}</td>
+                                <td class="px-4 py-3 text-sm">{{ routine.subject }}</td>
+                                <td class="px-4 py-3 text-sm">{{ routine.exam_date|date:"d M Y" }}</td>
+                                <td class="px-4 py-3 text-sm">{{ routine.start_time|time:"h:i A" }} &ndash; {{ routine.end_time|time:"h:i A" }}</td>
+                                <td class="px-4 py-3 text-sm">{{ routine.room|default:"-" }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">{{ routine.remarks|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="px-6 py-10 text-center text-gray-500">
+                    <p>No routines for Class {{ selected_grade }} yet. Use the form above to add one.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function routineTabs() {
+    return {
+        tab: 'class',
+        rowCount: 1,
+        init() {
+            this.rowCount = document.querySelectorAll('#subject-rows tr').length;
+        }
+    }
+}
+window.routineTabs = routineTabs;
+
+function addSubjectRow() {
+    const tbody = document.getElementById('subject-rows');
+    if (!tbody) {
+        console.error('subject-rows tbody not found');
+        return;
+    }
+    const rows = tbody.querySelectorAll('tr');
+    const rowCount = rows.length + 1;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="px-3 py-2 text-center text-sm text-gray-500">${rowCount}</td>
+        <td class="px-3 py-2"><input type="text" name="subject[]" required placeholder="e.g., Mathematics" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+        <td class="px-3 py-2"><input type="time" name="start_time[]" required class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+        <td class="px-3 py-2"><input type="time" name="end_time[]" required class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+        <td class="px-3 py-2"><input type="text" name="room[]" placeholder="e.g., Room 5" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+        <td class="px-3 py-2"><input type="text" name="remarks[]" placeholder="Any note?" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"></td>
+        <td class="px-3 py-2 whitespace-nowrap">
+            <button type="button" onclick="this.closest('tr').remove(); renumberRows();"
+                    class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded hover:bg-red-200">
+                Remove
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function renumberRows() {
+    const tbody = document.getElementById('subject-rows');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach((row, index) => {
+        row.cells[0].textContent = index + 1;
+    });
+}
+
+// Make functions available globally
+window.addSubjectRow = addSubjectRow;
+window.renumberRows = renumberRows;
+</script>
+{% endblock %}
