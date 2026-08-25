@@ -124,40 +124,60 @@
                         </button>
                     </div>
                     <div id="subjects-container" class="space-y-2">
-                        <div class="subject-row flex items-end gap-2">
-                            <div class="flex-1">
-                                <input type="text" name="subject[]" placeholder="Subject name"
-                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        {# Header row #}
+                        <div class="hidden md:flex items-center gap-2 px-1 pb-1 border-b border-gray-200">
+                            <div class="flex-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">Subject Name</div>
+                            <div class="flex-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">Full Marks</div>
+                            <div class="flex-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">Obt. Marks</div>
+                            <div class="w-10"></div>
+                        </div>
+                        <div class="subject-row p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-end gap-2 mb-2">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Subject Name</label>
+                                    <input type="text" name="subject[]" placeholder="e.g., Mathematics, English, Science"
+                                           class="w-full text-base px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                           autocomplete="off">
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <button type="button" class="remove-subject-btn w-10 h-[46px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-300" title="Remove this subject">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="w-28">
-                                <input type="number" name="full_marks[]" step="any" min="0" placeholder="Full marks"
-                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <div class="flex items-end gap-2">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Marks</label>
+                                    <input type="number" name="full_marks[]" step="any" min="0" placeholder="100"
+                                           class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Obtained Marks</label>
+                                    <input type="number" name="obtained_marks[]" step="any" min="0" placeholder="85"
+                                           class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                </div>
+                                <div class="w-10"></div>
                             </div>
-                            <div class="w-28">
-                                <input type="number" name="obtained_marks[]" step="any" min="0" placeholder="Obtained"
-                                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                            </div>
-                            <button type="button" class="remove-subject-btn px-3 py-2 text-gray-400 hover:text-red-600 transition-colors" title="Remove">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
                         </div>
                     </div>
                     <p class="text-xs text-gray-400 mt-2">Leave fields blank if not applicable. Total marks will be auto-calculated from obtained marks if not provided.</p>
                 </div>
+
+
+
                 <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Result Status <span class="text-red-500">*</span></label>
-                        <div class="grid grid-cols-3 gap-2">
-                            {% for value, label in result_status_choices %}
-                                <label class="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-primary-50 has-[:checked]:border-primary-700 has-[:checked]:text-primary-800 transition-colors">
-                                    <input type="radio" name="result_status" value="{{ value }}"
-                                           {% if value == 'PASS' %}checked{% endif %}
-                                           class="text-primary-700 focus:ring-primary-500">
-                                    <span class="text-sm font-medium">{{ label }}</span>
-                                </label>
-                            {% endfor %}
-                        </div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Result Status <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-3 gap-2">
+                        {% for value, label in result_status_choices %}
+                            <label class="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-primary-50 has-[:checked]:border-primary-700 has-[:checked]:text-primary-800 transition-colors">
+                                <input type="radio" name="result_status" value="{{ value }}"
+                                       {% if value == 'PASS' %}checked{% endif %}
+                                       class="text-primary-700 focus:ring-primary-500">
+                                <span class="text-sm font-medium">{{ label }}</span>
+                            </label>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -250,25 +270,36 @@
         function addSubjectRow() {
             const container = document.getElementById('subjects-container');
             const row = document.createElement('div');
-            row.className = 'subject-row flex items-end gap-2';
+            row.className = 'subject-row p-3 bg-gray-50 rounded-lg border border-gray-200';
             row.innerHTML = `
-                <div class="flex-1">
-                    <input type="text" name="subject[]" placeholder="Subject name"
-                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <div class="flex items-end gap-2 mb-2">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject Name</label>
+                        <input type="text" name="subject[]" placeholder="e.g., Mathematics, English, Science"
+                               class="w-full text-base px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                               autocomplete="off">
+                    </div>
+                    <div class="flex-shrink-0">
+                        <button type="button" class="remove-subject-btn w-10 h-[46px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-300" title="Remove this subject">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="w-28">
-                    <input type="number" name="full_marks[]" step="any" min="0" placeholder="Full marks"
-                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <div class="flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Marks</label>
+                        <input type="number" name="full_marks[]" step="any" min="0" placeholder="100"
+                               class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Obtained Marks</label>
+                        <input type="number" name="obtained_marks[]" step="any" min="0" placeholder="85"
+                               class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="w-10"></div>
                 </div>
-                <div class="w-28">
-                    <input type="number" name="obtained_marks[]" step="any" min="0" placeholder="Obtained"
-                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                </div>
-                <button type="button" class="remove-subject-btn px-3 py-2 text-gray-400 hover:text-red-600 transition-colors" title="Remove">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </button>
             `;
             container.appendChild(row);
             
