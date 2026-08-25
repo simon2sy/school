@@ -535,7 +535,7 @@ def bulk_upload_exam_routine(request, exam_id):
 
 
 @staff_member_required
-def exam_routine_add(request):
+def exam_routine_add(request, exam_id=None):
     """Admin page to add exam routines by class.
 
     Only accessible by superusers (admins). Teachers can only add marks/results.
