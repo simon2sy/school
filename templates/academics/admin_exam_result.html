@@ -80,19 +80,26 @@
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="add_manual">
-                <input type="hidden" name="exam" value="{{ selected_exam.pk }}">
+                {% if editing_result %}
+                    <input type="hidden" name="action" value="edit_result">
+                    <input type="hidden" name="result_id" value="{{ editing_result.pk }}">
+                {% else %}
+                    <input type="hidden" name="action" value="add_manual">
+                    <input type="hidden" name="exam" value="{{ selected_exam.pk }}">
+                {% endif %}
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Student Name <span class="text-red-500">*</span></label>
                         <input type="text" name="student_name" required
+                               value="{% if editing_result %}{{ editing_result.student_name }}{% endif %}"
                                placeholder="Full name as on the certificate"
                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Symbol Number <span class="text-red-500">*</span></label>
                         <input type="text" name="symbol_number" required
+                               value="{% if editing_result %}{{ editing_result.symbol_number }}{% endif %}"
                                placeholder="e.g., GES-2024-001"
                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     </div>
@@ -101,17 +108,24 @@
                         <select name="grade" required
                                 class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                             {% for grade_code, grade_label in grade_choices %}
-                                <option value="{{ grade_code }}" {% if selected_grade == grade_code %}selected{% endif %}>
+                                <option value="{{ grade_code }}" {% if editing_result and editing_result.grade == grade_code %}selected{% elif selected_grade == grade_code %}selected{% endif %}>
                                     {{ grade_label }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
-                        <input type="number" name="total_marks" step="any" min="0"
-                               placeholder="e.g., 425.50"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Roll Number</label>
+                        <input type="text" name="roll_number"
+                               value="{% if editing_result %}{{ editing_result.roll_number }}{% endif %}"
+                               placeholder="Optional"
                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total Marks <span class="text-xs text-gray-400">(auto-calculated)</span></label>
+                        <input type="number" name="total_marks" id="total-marks" readonly
+                               placeholder="Auto-calculated"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed">
                     </div>
                 <div class="md:col-span-2">
                     <div class="flex items-center justify-between mb-2">
@@ -131,6 +145,45 @@
                             <div class="flex-1 text-sm font-semibold text-gray-700 uppercase tracking-wide">Obt. Marks</div>
                             <div class="w-10"></div>
                         </div>
+                        {% if editing_subject_marks %}
+                            {% for sm in editing_subject_marks %}
+                            <div class="subject-row p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <div class="flex items-end gap-2 mb-2">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject Name</label>
+                                        <input type="text" name="subject[]" value="{{ sm.subject }}"
+                                               placeholder="e.g., Mathematics, English, Science"
+                                               class="w-full text-base px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                               autocomplete="off">
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <button type="button" class="remove-subject-btn w-10 h-[46px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-300" title="Remove this subject">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-end gap-2">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Marks</label>
+                                        <input type="number" name="full_marks[]" step="any" min="0"
+                                               value="{{ sm.full_marks|default_if_none:'' }}"
+                                               placeholder="100"
+                                               class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Obtained Marks</label>
+                                        <input type="number" name="obtained_marks[]" step="any" min="0"
+                                               value="{{ sm.obtained_marks|default_if_none:'' }}"
+                                               placeholder="85"
+                                               class="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    </div>
+                                    <div class="w-10"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
                         <div class="subject-row p-3 bg-gray-50 rounded-lg border border-gray-200">
                             <div class="flex items-end gap-2 mb-2">
                                 <div class="flex-1">
@@ -161,35 +214,49 @@
                                 <div class="w-10"></div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
-                    <p class="text-xs text-gray-400 mt-2">Leave fields blank if not applicable. Total marks will be auto-calculated from obtained marks if not provided.</p>
+                    <p class="text-xs text-gray-400 mt-2">Fill in obtained marks for each subject. Total marks, percentage, and GPA are calculated automatically.</p>
                 </div>
 
 
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Result Status <span class="text-red-500">*</span></label>
-                    <div class="grid grid-cols-3 gap-2">
-                        {% for value, label in result_status_choices %}
-                            <label class="flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-primary-50 has-[:checked]:border-primary-700 has-[:checked]:text-primary-800 transition-colors">
-                                <input type="radio" name="result_status" value="{{ value }}"
-                                       {% if value == 'PASS' %}checked{% endif %}
-                                       class="text-primary-700 focus:ring-primary-500">
-                                <span class="text-sm font-medium">{{ label }}</span>
-                            </label>
-                        {% endfor %}
+                    <div class="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Percentage</label>
+                            <div id="percentage-display" class="text-2xl font-bold text-blue-800">0.00%</div>
+                        </div>
+                        <div class="w-px h-12 bg-blue-200"></div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">GPA</label>
+                            <div id="gpa-display" class="text-2xl font-bold text-blue-800">0.00</div>
+                        </div>
+                        <div class="w-px h-12 bg-blue-200"></div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Grade</label>
+                            <div id="grade-display" class="text-2xl font-bold text-blue-800">-</div>
+                        </div>
                     </div>
+                    {# Note: gpa and percentage are NOT submitted — backend calculates them #}
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">
                     <button type="submit"
                             class="px-6 py-2.5 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors">
-                        Save Result
+                        {% if editing_result %}Update Result{% else %}Save Result{% endif %}
                     </button>
+                    {% if editing_result %}
+                    <a href="{% url 'academics:exam_result_add' %}?exam={{ editing_result.exam.pk }}&grade={{ editing_result.grade }}"
+                       class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
+                        Cancel Edit
+                    </a>
+                    {% else %}
                     <button type="reset"
                             class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
                         Clear Form
                     </button>
+                    {% endif %}
                     <span class="text-xs text-gray-500">Tip: keep the form open and add all students one by one.</span>
                 </div>
             </form>
@@ -213,8 +280,11 @@
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Class</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Total Marks</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">GPA</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Percentage</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subjects</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Published</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -233,6 +303,14 @@
                             </td>
                             <td class="px-4 py-3 text-sm">{{ result.total_marks|default:"-" }}</td>
                             <td class="px-4 py-3 text-sm">
+                                {% if result.gpa %}
+                                <span class="font-semibold {% if result.gpa >= 3.2 %}text-green-700{% elif result.gpa >= 2.0 %}text-yellow-700{% else %}text-red-700{% endif %}">
+                                    {{ result.gpa }}
+                                </span>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-sm">{{ result.percentage|default:"-" }}{% if result.percentage %}%{% endif %}</td>
+                            <td class="px-4 py-3 text-sm">
                                 {% if result.subject_marks.all %}
                                 <div class="space-y-1">
                                     {% for sm in result.subject_marks.all %}
@@ -249,10 +327,25 @@
                                 {% endif %}
                             </td>
                             <td class="px-4 py-3 text-sm text-gray-500">{{ result.published_at|date:"d M Y, h:i A"|default:"-" }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'academics:exam_result_add' %}?exam={{ result.exam.pk }}&grade={{ result.grade }}&edit={{ result.pk }}"
+                                       class="text-primary-600 hover:text-primary-800 text-xs font-medium"
+                                       title="Edit this result">
+                                        Edit
+                                    </a>
+                                    <span class="text-gray-300">|</span>
+                                    <a href="{% url 'academics:exam_result_audit_log' result.pk %}"
+                                       class="text-gray-500 hover:text-gray-700 text-xs font-medium"
+                                       title="View audit history">
+                                        History
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td class="px-4 py-6 text-center text-gray-500" colspan="7">No results yet for this class.</td>
+                            <td class="px-4 py-6 text-center text-gray-500" colspan="10">No results yet for this class.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -266,6 +359,104 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        /*
+         * NEB Grading Scale (matches backend services.py exactly):
+         *  90–100%  →  A+  →  4.0
+         *  80–89%   →  A   →  3.6
+         *  70–79%   →  B+  →  3.2
+         *  60–69%   →  B   →  2.8
+         *  50–59%   →  C+  →  2.4
+         *  40–49%   →  C   →  2.0
+         *  35–39%   →  D   →  1.6
+         *  Below 35% → NG  →  0.0
+         *
+         * GPA = average of per-subject grade points (NOT overall percentage).
+         * This JS is PREVIEW ONLY — backend recalculates everything.
+         */
+
+        function getGradeFromPercentage(pct) {
+            if (pct === null || pct === undefined || isNaN(pct)) return { gp: 0, grade: 'NG' };
+            if (pct >= 90) return { gp: 4.0, grade: 'A+' };
+            if (pct >= 80) return { gp: 3.6, grade: 'A' };
+            if (pct >= 70) return { gp: 3.2, grade: 'B+' };
+            if (pct >= 60) return { gp: 2.8, grade: 'B' };
+            if (pct >= 50) return { gp: 2.4, grade: 'C+' };
+            if (pct >= 40) return { gp: 2.0, grade: 'C' };
+            if (pct >= 35) return { gp: 1.6, grade: 'D' };
+            return { gp: 0.0, grade: 'NG' };
+        }
+
+        function recalculate() {
+            const fullInputs = document.querySelectorAll('input[name="full_marks[]"]');
+            const obtInputs = document.querySelectorAll('input[name="obtained_marks[]"]');
+
+            let totalFull = 0;
+            let totalObtained = 0;
+            let subjectsWithBoth = 0;
+            let gradePointsSum = 0;
+            let hasFullMarks = false;
+            let hasObtainedMarks = false;
+
+            // Per-subject calculations
+            fullInputs.forEach((fullInput, idx) => {
+                const fullVal = parseFloat(fullInput.value);
+                const obtVal = obtInputs[idx] ? parseFloat(obtInputs[idx].value) : NaN;
+
+                if (!isNaN(fullVal) && fullVal > 0) {
+                    totalFull += fullVal;
+                    hasFullMarks = true;
+                }
+                if (!isNaN(obtVal) && obtVal >= 0) {
+                    totalObtained += obtVal;
+                    hasObtainedMarks = true;
+                }
+
+                // Per-subject grade point
+                if (!isNaN(fullVal) && fullVal > 0 && !isNaN(obtVal)) {
+                    const subjectPct = (obtVal / fullVal) * 100;
+                    const { gp } = getGradeFromPercentage(subjectPct);
+                    gradePointsSum += gp;
+                    subjectsWithBoth++;
+                }
+            });
+
+            // Update total marks (auto-calculated, read-only)
+            const totalMarksEl = document.getElementById('total-marks');
+            if (hasObtainedMarks) {
+                totalMarksEl.value = totalObtained.toFixed(2);
+            } else {
+                totalMarksEl.value = '';
+            }
+
+            // Overall percentage (weighted)
+            let overallPct = 0;
+            if (hasFullMarks && totalFull > 0) {
+                overallPct = (totalObtained / totalFull) * 100;
+            }
+
+            // GPA = average of per-subject grade points
+            let gpa = 0;
+            if (subjectsWithBoth > 0) {
+                gpa = gradePointsSum / subjectsWithBoth;
+            }
+
+            // Overall grade from overall percentage
+            const { grade } = getGradeFromPercentage(overallPct);
+
+            // Update displays (preview only — backend recalculates)
+            document.getElementById('percentage-display').textContent = overallPct.toFixed(2) + '%';
+            document.getElementById('gpa-display').textContent = gpa.toFixed(2);
+            document.getElementById('grade-display').textContent = grade;
+        }
+
+        // Attach input listeners to all marks fields
+        function attachListeners() {
+            document.querySelectorAll('input[name="full_marks[]"], input[name="obtained_marks[]"]').forEach(input => {
+                input.removeEventListener('input', recalculate);
+                input.addEventListener('input', recalculate);
+            });
+        }
+
         // Add subject row function
         function addSubjectRow() {
             const container = document.getElementById('subjects-container');
@@ -302,38 +493,50 @@
                 </div>
             `;
             container.appendChild(row);
-            
+
             // Attach remove event to the new button
             const removeBtn = row.querySelector('.remove-subject-btn');
             removeBtn.addEventListener('click', function() {
                 if (document.querySelectorAll('.subject-row').length > 1) {
                     row.remove();
+                    recalculate();
                 } else {
                     // Clear fields instead of removing the last row
                     const inputs = row.querySelectorAll('input');
                     inputs.forEach(input => input.value = '');
+                    recalculate();
                 }
             });
+
+            // Attach input listeners to new row
+            attachListeners();
+            recalculate();
         }
-        
+
         // Attach event to the add button
         const addBtn = document.getElementById('add-subject-btn');
         if (addBtn) {
             addBtn.addEventListener('click', addSubjectRow);
         }
-        
+
         // Attach remove event to existing remove buttons
         document.querySelectorAll('.remove-subject-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const row = btn.closest('.subject-row');
                 if (document.querySelectorAll('.subject-row').length > 1) {
                     row.remove();
+                    recalculate();
                 } else {
                     const inputs = row.querySelectorAll('input');
                     inputs.forEach(input => input.value = '');
+                    recalculate();
                 }
             });
         });
+
+        // Initial listeners and calculation
+        attachListeners();
+        recalculate();
     });
 </script>
 {% endblock %}

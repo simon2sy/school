@@ -1,9 +1,19 @@
-from django.shortcuts import render, get_object_or_404,redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
-from .models import AcademicProgram, Exam, ExamRoutine, Result, SubjectMark
+from django.contrib.auth.decorators import login_required
+from .models import (
+    AcademicProgram, Exam, ExamRoutine, Result, SubjectMark,
+    TeacherSubjectAssignment, MarksAuditLog,
+)
 from apps.core.models import SchoolSettings
-from .forms import ResultSearchForm,ExamRoutineBulkUploadForm
+from .forms import ResultSearchForm, ExamRoutineBulkUploadForm, ResultEditForm
+from .services import save_marks_and_result, calculate_result_from_subject_marks
+from .permissions import (
+    can_enter_marks, can_edit_result, validate_exam_exists,
+    validate_grade, validate_subject_mark_data,
+    is_teacher_assigned_to_subject, get_authorized_subjects,
+)
 from django.db import transaction
 from datetime import datetime
 
@@ -775,11 +785,13 @@ def exam_routine_add(request, exam_id=None):
 
 @staff_member_required
 def exam_result_add(request):
-    """Admin page to add exam results.
+    """Admin page to add or edit exam results.
 
-    Supports two workflows:
-    1. Bulk upload via CSV / Excel (uses form file input).
-    2. Manual entry (one result at a time) for non-technical users.
+    Security:
+    - Only staff/superusers can access.
+    - GPA/percentage/total/status are NEVER trusted from the client.
+    - All calculations happen server-side via services.py.
+    - Teacher subject assignments are checked.
     """
     school = SchoolSettings.get_settings()
 
@@ -788,134 +800,201 @@ def exam_result_add(request):
     selected_grade = request.GET.get('grade', '1')
     results = []
     manual_form_errors = []
+    editing_result = None
+    editing_subject_marks = []
 
+    # ── Load selected exam ──
     if request.GET.get('exam'):
         selected_exam = get_object_or_404(
             Exam, pk=request.GET.get('exam')
         )
 
-    # ── Manual single-result entry (easy form) ──
+    # ── Load editing result if requested ──
+    edit_id = request.GET.get('edit')
+    if edit_id:
+        try:
+            editing_result = Result.objects.prefetch_related('subject_marks').get(pk=edit_id)
+            if not can_edit_result(request.user, editing_result):
+                messages.error(request, "You don't have permission to edit this result.")
+                editing_result = None
+            else:
+                editing_subject_marks = list(editing_result.subject_marks.all())
+                selected_exam = editing_result.exam
+                selected_grade = editing_result.grade
+        except Result.DoesNotExist:
+            messages.error(request, "Result not found.")
+
+    # ── Handle POST: Add new result ──
     if request.method == 'POST' and request.POST.get('action') == 'add_manual':
-        if not selected_exam:
+        if not can_enter_marks(request.user):
+            messages.error(request, "You don't have permission to enter marks.")
+        elif not selected_exam:
             messages.error(request, "Please select an exam first.")
         else:
             student_name = (request.POST.get('student_name') or '').strip()
             symbol_number = (request.POST.get('symbol_number') or '').strip()
             manual_grade = (request.POST.get('grade') or selected_grade or '').strip()
-            total_marks_raw = (request.POST.get('total_marks') or '').strip()
-            result_status = request.POST.get('result_status', 'PASS')
+            roll_number = (request.POST.get('roll_number') or '').strip()
 
-            try:
-                if not student_name:
-                    raise ValueError("Student name is required.")
-                if not symbol_number:
-                    raise ValueError("Symbol number is required.")
-                if not manual_grade:
-                    raise ValueError("Please choose a class.")
+            # IGNORE client-submitted: gpa, percentage, total_marks, result_status
+            # These will be calculated server-side
 
-                valid_grades = dict(ExamRoutine.GRADE_CHOICES)
-                if manual_grade not in valid_grades:
-                    raise ValueError("Please choose a valid class.")
-
-                if Result.objects.filter(
-                    exam=selected_exam,
-                    symbol_number__iexact=symbol_number
-                ).exists():
-                    raise ValueError(
-                        f"A result for symbol number "
-                        f"'{symbol_number}' already exists for this exam."
-                    )
-
-                total_marks = None
-                if total_marks_raw:
-                    try:
-                        total_marks = float(total_marks_raw)
-                    except ValueError:
-                        raise ValueError(
-                            "Total marks must be a valid number."
-                        )
-
-                # Create the result first
-                result = Result.objects.create(
-                    exam=selected_exam,
-                    student_name=student_name,
-                    symbol_number=symbol_number,
-                    grade=manual_grade,
-                    total_marks=total_marks,
-                    result_status=result_status,
-                    is_published=True,
-                    published_at=timezone.now(),
-                )
-
-                # Process subject-wise marks
+            # Validate grade
+            grade_valid, grade_error = validate_grade(manual_grade)
+            if not grade_valid:
+                manual_form_errors.append(grade_error)
+                messages.error(request, grade_error)
+            elif not student_name:
+                manual_form_errors.append("Student name is required.")
+                messages.error(request, "Student name is required.")
+            elif not symbol_number:
+                manual_form_errors.append("Symbol number is required.")
+                messages.error(request, "Symbol number is required.")
+            elif Result.objects.filter(
+                exam=selected_exam,
+                symbol_number__iexact=symbol_number
+            ).exists():
+                msg = f"A result for symbol number '{symbol_number}' already exists for this exam."
+                manual_form_errors.append(msg)
+                messages.error(request, msg)
+            else:
+                # Parse subject marks from POST
                 subjects = request.POST.getlist('subject[]')
                 full_marks_list = request.POST.getlist('full_marks[]')
                 obtained_marks_list = request.POST.getlist('obtained_marks[]')
 
-                # Validate and create subject marks
-                if subjects and any(s.strip() for s in subjects):
-                    total_obtained = 0
-                    valid_subjects = 0
-                    
-                    for i, subject in enumerate(subjects):
-                        subject = subject.strip()
-                        if not subject:
-                            continue
-                            
-                        full_marks = None
-                        obtained_marks = None
-                        
-                        # Get full marks if provided
-                        if i < len(full_marks_list) and full_marks_list[i].strip():
-                            try:
-                                full_marks = float(full_marks_list[i])
-                            except ValueError:
-                                raise ValueError(f"Full marks for '{subject}' must be a valid number.")
-                        
-                        # Get obtained marks if provided
-                        if i < len(obtained_marks_list) and obtained_marks_list[i].strip():
-                            try:
-                                obtained_marks = float(obtained_marks_list[i])
-                                total_obtained += obtained_marks
-                                valid_subjects += 1
-                            except ValueError:
-                                raise ValueError(f"Obtained marks for '{subject}' must be a valid number.")
-                        
-                        # Create SubjectMark
-                        SubjectMark.objects.create(
-                            result=result,
-                            subject=subject,
-                            full_marks=full_marks,
-                            obtained_marks=obtained_marks
-                        )
-                    
-                    # Update total_marks if we have obtained marks for at least one subject
-                    if valid_subjects > 0 and total_marks is None:
-                        result.total_marks = total_obtained
-                        result.save()
-                elif total_marks is not None:
-                    # If no subjects provided but total_marks is given, keep it
-                    pass
-                # If neither subjects nor total_marks provided, that's okay (total_marks can be null)
-
-                messages.success(
-                    request,
-                    f"Result added: {student_name} "
-                    f"({symbol_number})."
+                # Validate subject marks data
+                subject_data, validation_errors = validate_subject_mark_data(
+                    subjects, full_marks_list, obtained_marks_list
                 )
-                selected_grade = manual_grade
 
-            except ValueError as error:
-                manual_form_errors.append(str(error))
-                messages.error(request, str(error))
+                if validation_errors:
+                    for err in validation_errors:
+                        manual_form_errors.append(err)
+                        messages.error(request, err)
+                else:
+                    try:
+                        # Create result first (with placeholder values — service will update)
+                        result = Result.objects.create(
+                            exam=selected_exam,
+                            student_name=student_name,
+                            symbol_number=symbol_number,
+                            grade=manual_grade,
+                            roll_number=roll_number,
+                            result_status='PASS',  # Will be recalculated
+                            is_published=True,
+                            published_at=timezone.now(),
+                        )
 
-    # Refresh results list for the current exam + grade
+                        # Use service layer to save marks and recalculate
+                        result = save_marks_and_result(
+                            result=result,
+                            subject_marks_data=subject_data,
+                            user=request.user,
+                            notes="Initial entry via admin form.",
+                        )
+
+                        messages.success(
+                            request,
+                            f"Result added: {student_name} ({symbol_number}). "
+                            f"GPA: {result.gpa}, Status: {result.get_result_status_display()}"
+                        )
+                        selected_grade = manual_grade
+
+                    except Exception as e:
+                        manual_form_errors.append(str(e))
+                        messages.error(request, str(e))
+
+    # ── Handle POST: Edit existing result ──
+    elif request.method == 'POST' and request.POST.get('action') == 'edit_result':
+        result_id = request.POST.get('result_id')
+        if not result_id:
+            messages.error(request, "No result specified for editing.")
+        else:
+            try:
+                result = Result.objects.get(pk=result_id)
+            except Result.DoesNotExist:
+                messages.error(request, "Result not found.")
+            else:
+                if not can_edit_result(request.user, result):
+                    messages.error(request, "You don't have permission to edit this result.")
+                else:
+                    student_name = (request.POST.get('student_name') or '').strip()
+                    symbol_number = (request.POST.get('symbol_number') or '').strip()
+                    manual_grade = (request.POST.get('grade') or result.grade).strip()
+                    roll_number = (request.POST.get('roll_number') or '').strip()
+
+                    # Validate
+                    grade_valid, grade_error = validate_grade(manual_grade)
+                    if not grade_valid:
+                        manual_form_errors.append(grade_error)
+                        messages.error(request, grade_error)
+                    elif not student_name:
+                        manual_form_errors.append("Student name is required.")
+                    elif not symbol_number:
+                        manual_form_errors.append("Symbol number is required.")
+                    else:
+                        # Check duplicate symbol (excluding current result)
+                        if Result.objects.filter(
+                            exam=result.exam,
+                            symbol_number__iexact=symbol_number,
+                        ).exclude(pk=result.pk).exists():
+                            msg = f"A result for symbol number '{symbol_number}' already exists for this exam."
+                            manual_form_errors.append(msg)
+                            messages.error(request, msg)
+                        else:
+                            # Parse subject marks
+                            subjects = request.POST.getlist('subject[]')
+                            full_marks_list = request.POST.getlist('full_marks[]')
+                            obtained_marks_list = request.POST.getlist('obtained_marks[]')
+
+                            subject_data, validation_errors = validate_subject_mark_data(
+                                subjects, full_marks_list, obtained_marks_list
+                            )
+
+                            if validation_errors:
+                                for err in validation_errors:
+                                    manual_form_errors.append(err)
+                                    messages.error(request, err)
+                            else:
+                                try:
+                                    # Update student info
+                                    result.student_name = student_name
+                                    result.symbol_number = symbol_number
+                                    result.grade = manual_grade
+                                    result.roll_number = roll_number
+                                    result.save()
+
+                                    # Use service layer to update marks and recalculate
+                                    result = save_marks_and_result(
+                                        result=result,
+                                        subject_marks_data=subject_data,
+                                        user=request.user,
+                                        notes="Edited via admin form.",
+                                    )
+
+                                    messages.success(
+                                        request,
+                                        f"Result updated: {student_name} ({symbol_number}). "
+                                        f"GPA: {result.gpa}, Status: {result.get_result_status_display()}"
+                                    )
+                                    selected_grade = manual_grade
+                                    editing_result = None  # Exit edit mode
+
+                                except Exception as e:
+                                    manual_form_errors.append(str(e))
+                                    messages.error(request, str(e))
+
+    # ── Refresh results list ──
     if selected_exam:
         results = Result.objects.filter(
             exam=selected_exam
         ).prefetch_related('subject_marks').order_by('-published_at')
         if selected_grade:
             results = results.filter(grade=selected_grade)
+
+    # ── Compute authorized subjects for the teacher ──
+    authorized_subjects = get_authorized_subjects(request.user, selected_grade) if selected_grade else []
 
     context = {
         'school': school,
@@ -926,10 +1005,37 @@ def exam_result_add(request):
         'grade_choices': ExamRoutine.GRADE_CHOICES,
         'result_status_choices': Result.RESULT_STATUS_CHOICES,
         'manual_form_errors': manual_form_errors,
+        'editing_result': editing_result,
+        'editing_subject_marks': editing_subject_marks,
+        'authorized_subjects': authorized_subjects,
         'page_title': 'Add Exam Result',
     }
     return render(
         request,
         'academics/admin_exam_result.html',
+        context
+    )
+
+
+@login_required
+def exam_result_audit_log(request, result_id):
+    """View audit log for a specific result. Staff only."""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to view audit logs.")
+        return redirect('academics:exam_result_add')
+
+    result = get_object_or_404(Result, pk=result_id)
+    audit_logs = MarksAuditLog.objects.filter(
+        result=result
+    ).select_related('changed_by').order_by('-created_at')
+
+    context = {
+        'result': result,
+        'audit_logs': audit_logs,
+        'page_title': f'Audit Log - {result.student_name}',
+    }
+    return render(
+        request,
+        'academics/exam_result_audit_log.html',
         context
     )

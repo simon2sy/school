@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.text import slugify
 import uuid
 from apps.core.image_utils import optimize_image, image_field_unchanged
@@ -282,3 +283,154 @@ class SubjectMark(models.Model):
 
     def __str__(self):
         return f"{self.subject}: {self.obtained_marks}"
+
+
+class TeacherSubjectAssignment(models.Model):
+    """Maps a teacher (User) to the classes and subjects they are authorized to enter marks for.
+
+    A teacher assigned to Class 9 Mathematics can only enter marks for
+    Class 9 Mathematics — never for another class or subject.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subject_assignments',
+        help_text="The teacher (Django user)"
+    )
+    grade = models.CharField(
+        max_length=2,
+        choices=ExamRoutine.GRADE_CHOICES,
+        help_text="Class the teacher is assigned to"
+    )
+    subject = models.CharField(
+        max_length=200,
+        help_text="Subject the teacher is authorized for"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Teacher Subject Assignment"
+        verbose_name_plural = "Teacher Subject Assignments"
+        unique_together = [['user', 'grade', 'subject']]
+        indexes = [
+            models.Index(fields=['user', 'grade']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → Class {self.grade} - {self.subject}"
+
+
+class MarksAuditLog(models.Model):
+    """Immutable audit trail for every marks modification.
+
+    Created on first entry and updated on every subsequent edit.
+    Normal users cannot modify or delete audit records.
+    """
+    result = models.ForeignKey(
+        Result,
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+        help_text="The result this audit entry belongs to"
+    )
+    subject_mark = models.ForeignKey(
+        SubjectMark,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='audit_logs',
+        help_text="The subject mark that was changed"
+    )
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        help_text="User who made the change"
+    )
+    action = models.CharField(
+        max_length=20,
+        choices=[
+            ('CREATE', 'Created'),
+            ('UPDATE', 'Updated'),
+        ],
+        help_text="Type of action performed"
+    )
+    old_obtained_marks = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        null=True, blank=True,
+        help_text="Previous obtained marks (null on create)"
+    )
+    new_obtained_marks = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        null=True, blank=True,
+        help_text="New obtained marks"
+    )
+    old_full_marks = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        null=True, blank=True,
+        help_text="Previous full marks (null on create)"
+    )
+    new_full_marks = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        null=True, blank=True,
+        help_text="New full marks"
+    )
+    old_gpa = models.DecimalField(
+        max_digits=4, decimal_places=2,
+        null=True, blank=True,
+        help_text="Previous GPA"
+    )
+    new_gpa = models.DecimalField(
+        max_digits=4, decimal_places=2,
+        null=True, blank=True,
+        help_text="New GPA"
+    )
+    old_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        help_text="Previous percentage"
+    )
+    new_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        help_text="New percentage"
+    )
+    old_result_status = models.CharField(
+        max_length=10, null=True, blank=True,
+        help_text="Previous result status"
+    )
+    new_result_status = models.CharField(
+        max_length=10, null=True, blank=True,
+        help_text="New result status"
+    )
+    subject_name = models.CharField(
+        max_length=200, blank=True,
+        help_text="Subject name at time of change"
+    )
+    student_name = models.CharField(
+        max_length=200, blank=True,
+        help_text="Student name at time of change"
+    )
+    symbol_number = models.CharField(
+        max_length=50, blank=True,
+        help_text="Symbol number at time of change"
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Optional notes about the change"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Marks Audit Log"
+        verbose_name_plural = "Marks Audit Logs"
+        indexes = [
+            models.Index(fields=['result', '-created_at']),
+            models.Index(fields=['changed_by']),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.action} by {self.changed_by} "
+            f"on {self.student_name} ({self.symbol_number}) "
+            f"- {self.subject_name} at {self.created_at}"
+        )

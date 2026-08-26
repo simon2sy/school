@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path
-from .models import AcademicProgram, Exam, ExamRoutine, Result, SubjectMark
+from .models import (
+    AcademicProgram, Exam, ExamRoutine, Result, SubjectMark,
+    TeacherSubjectAssignment, MarksAuditLog,
+)
 
 from .views import bulk_upload_exam_routine
 class ExamRoutineInline(admin.TabularInline):
@@ -195,3 +198,47 @@ class ResultAdmin(admin.ModelAdmin):
             obj.get_result_status_display()
         )
     result_status_badge.short_description = 'Status'
+
+
+@admin.register(TeacherSubjectAssignment)
+class TeacherSubjectAssignmentAdmin(admin.ModelAdmin):
+    list_display = ['user', 'grade', 'subject', 'created_at']
+    list_filter = ['grade', 'user']
+    search_fields = ['user__username', 'subject']
+    autocomplete_fields = ['user']
+    ordering = ['grade', 'subject', 'user']
+    readonly_fields = ['created_at']
+
+
+@admin.register(MarksAuditLog)
+class MarksAuditLogAdmin(admin.ModelAdmin):
+    list_display = [
+        'created_at', 'action', 'changed_by',
+        'student_name', 'symbol_number', 'subject_name',
+        'old_obtained_marks', 'new_obtained_marks',
+    ]
+    list_filter = ['action', 'created_at', 'changed_by']
+    search_fields = [
+        'student_name', 'symbol_number', 'subject_name',
+        'changed_by__username',
+    ]
+    readonly_fields = [
+        'result', 'subject_mark', 'changed_by', 'action',
+        'old_obtained_marks', 'new_obtained_marks',
+        'old_full_marks', 'new_full_marks',
+        'old_gpa', 'new_gpa', 'old_percentage', 'new_percentage',
+        'old_result_status', 'new_result_status',
+        'subject_name', 'student_name', 'symbol_number',
+        'notes', 'created_at',
+    ]
+    ordering = ['-created_at']
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False  # Audit logs are created by the system, not manually
+
+    def has_change_permission(self, request, obj=None):
+        return False  # Audit logs are immutable
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # Audit logs cannot be deleted

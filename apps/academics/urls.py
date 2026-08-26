@@ -11,5 +11,6 @@ urlpatterns = [
     path('exam-routine/add/', views.exam_routine_add, name='exam_routine_add'),
     path('exam-routine/add/<int:exam_id>/', views.exam_routine_add, name='exam_routine_add_for_exam'),
     path('exam-result/add/', views.exam_result_add, name='exam_result_add'),
+    path('exam-result/audit/<int:result_id>/', views.exam_result_audit_log, name='exam_result_audit_log'),
     path('results/', views.results, name='results'),
 ]

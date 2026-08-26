@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Audit Log - {{ result.student_name }} - {{ school.school_name }}{% endblock %}
+
+{% block content %}
+{# Hero Section #}
+<section class="bg-gradient-to-br from-primary-800 to-primary-600 py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3 mb-4">
+            <a href="{% url 'academics:exam_result_add' %}?exam={{ result.exam.pk }}&grade={{ result.grade }}"
+               class="inline-flex items-center gap-2 text-primary-200 hover:text-white text-sm font-medium transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Results
+            </a>
+        </div>
+        <h1 class="font-heading font-bold text-2xl lg:text-3xl text-white">Marks Audit Log</h1>
+        <p class="text-primary-200 text-sm mt-1">
+            {{ result.student_name }} ({{ result.symbol_number }}) — {{ result.exam }}
+        </p>
+    </div>
+</section>
+
+{# Main Content #}
+<section class="py-8 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {# Result Summary #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Current Result</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <span class="text-xs font-medium text-gray-500 uppercase">Student</span>
+                    <p class="text-sm font-semibold text-gray-800">{{ result.student_name }}</p>
+                </div>
+                <div>
+                    <span class="text-xs font-medium text-gray-500 uppercase">Symbol #</span>
+                    <p class="text-sm font-semibold text-gray-800">{{ result.symbol_number }}</p>
+                </div>
+                <div>
+                    <span class="text-xs font-medium text-gray-500 uppercase">GPA</span>
+                    <p class="text-sm font-semibold text-gray-800">{{ result.gpa|default:"-" }}</p>
+                </div>
+                <div>
+                    <span class="text-xs font-medium text-gray-500 uppercase">Status</span>
+                    <p class="text-sm font-semibold text-gray-800">{{ result.get_result_status_display }}</p>
+                </div>
+            </div>
+        </div>
+
+        {# Audit Log Table #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-800">Change History</h2>
+                <p class="text-sm text-gray-500">{{ audit_logs|length }} change{{ audit_logs|length|pluralize }}</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Date & Time</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Action</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Changed By</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subject</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Old Marks</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">New Marks</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">GPA Change</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for log in audit_logs %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                {{ log.created_at|date:"d M Y, h:i A" }}
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                    {% if log.action == 'CREATE' %}bg-green-100 text-green-800
+                                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {{ log.get_action_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                {{ log.changed_by.username|default:"System" }}
+                            </td>
+                            <td class="px-4 py-3 text-sm font-medium text-gray-800">
+                                {{ log.subject_name|default:"Overall" }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                {% if log.old_obtained_marks is not None %}
+                                    {{ log.old_obtained_marks }}/{{ log.old_full_marks|default:"?" }}
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-800 font-medium">
+                                {% if log.new_obtained_marks is not None %}
+                                    {{ log.new_obtained_marks }}/{{ log.new_full_marks|default:"?" }}
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                {% if log.old_gpa is not None or log.new_gpa is not None %}
+                                    <span class="text-gray-500">{{ log.old_gpa|default:"-" }}</span>
+                                    <span class="text-gray-400"> → </span>
+                                    <span class="font-medium text-gray-800">{{ log.new_gpa|default:"-" }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-500 max-w-[200px] truncate">
+                                {{ log.notes|default:"-" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td class="px-4 py-6 text-center text-gray-500" colspan="8">
+                                No audit records found for this result.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
