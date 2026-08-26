@@ -428,17 +428,14 @@
                 totalMarksEl.value = '';
             }
 
-            // Overall percentage (weighted)
-            let overallPct = 0;
-            if (hasFullMarks && totalFull > 0) {
-                overallPct = (totalObtained / totalFull) * 100;
-            }
-
             // GPA = average of per-subject grade points
             let gpa = 0;
             if (subjectsWithBoth > 0) {
                 gpa = gradePointsSum / subjectsWithBoth;
             }
+
+            // Overall percentage = GPA × 25 (since 4.0 = 100%)
+            let overallPct = gpa * 25;
 
             // Overall grade from overall percentage
             const { grade } = getGradeFromPercentage(overallPct);

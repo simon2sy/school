@@ -79,7 +79,7 @@ def calculate_result_from_subject_marks(
       2. Convert subject percentage → subject grade point
       3. Final GPA = sum(grade_points) / number_of_subjects
 
-    Overall percentage is the weighted total: sum(obtained) / sum(full) * 100.
+    Overall percentage = GPA × 25 (since 4.0 = 100%).
     Overall letter grade is determined from the overall percentage.
 
     Returns a dict with all calculated fields.
@@ -137,11 +137,6 @@ def calculate_result_from_subject_marks(
 
     total_marks = total_obtained
 
-    # Overall percentage (weighted by full marks)
-    overall_percentage = None
-    if has_full_marks and total_full > 0:
-        overall_percentage = calculate_percentage(total_obtained, total_full)
-
     # GPA = average of per-subject grade points
     if subjects_with_both > 0:
         gpa = (grade_points_sum / Decimal(str(subjects_with_both))).quantize(
@@ -150,8 +145,13 @@ def calculate_result_from_subject_marks(
     else:
         gpa = Decimal("0.00")
 
+    # Overall percentage = GPA × 25 (since 4.0 GPA = 100%)
+    overall_percentage = (gpa * Decimal("25")).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+
     # Overall grade from overall percentage
-    if overall_percentage is not None:
+    if has_obtained_marks:
         _, overall_grade = calculate_grade_and_gpa(overall_percentage)
     else:
         overall_grade = "-"
