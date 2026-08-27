@@ -222,6 +222,8 @@ class Result(models.Model):
             models.Index(fields=['symbol_number']),
             models.Index(fields=['exam', 'grade']),
             models.Index(fields=['is_published']),
+            models.Index(fields=['exam', 'is_published', '-published_at'], name='idx_result_exam_published'),
+            models.Index(fields=['grade', '-published_at'], name='idx_result_grade_published'),
         ]
         unique_together = [['exam', 'symbol_number']]
 

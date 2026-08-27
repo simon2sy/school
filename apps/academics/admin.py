@@ -1,12 +1,54 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path
+from django.core.cache import cache
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from .models import (
     AcademicProgram, Exam, ExamRoutine, Result, SubjectMark,
     TeacherSubjectAssignment, MarksAuditLog,
 )
 
 from .views import bulk_upload_exam_routine
+
+
+# ── Cache invalidation signals ──────────────────────────────────────
+# When models change via Django admin (or any ORM save/delete),
+# invalidate the relevant caches immediately.
+
+@receiver(post_save, sender=AcademicProgram)
+@receiver(post_delete, sender=AcademicProgram)
+def _invalidate_program_cache(sender, **kwargs):
+    cache.delete('galaxy:programs:list')
+    try:
+        from .tasks import invalidate_program_caches
+        invalidate_program_caches.delay()
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=ExamRoutine)
+@receiver(post_delete, sender=ExamRoutine)
+def _invalidate_routine_cache(sender, instance, **kwargs):
+    cache.delete(f'galaxy:routine:{instance.exam_id}:all')
+    cache.delete(f'galaxy:routine:{instance.exam_id}:{instance.grade}')
+    try:
+        from .tasks import invalidate_routine_caches
+        invalidate_routine_caches.delay(instance.exam_id)
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=Result)
+@receiver(post_delete, sender=Result)
+def _invalidate_result_cache(sender, instance, **kwargs):
+    cache.delete(f'galaxy:result:{instance.symbol_number}:latest')
+    cache.delete(f'galaxy:result:{instance.symbol_number}:{instance.exam_id}')
+    try:
+        from .tasks import invalidate_result_cache
+        invalidate_result_cache.delay(instance.symbol_number, instance.exam_id)
+    except Exception:
+        pass
 class ExamRoutineInline(admin.TabularInline):
     """Inline to add exam routines directly while editing an examination."""
     model = ExamRoutine

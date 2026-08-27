@@ -167,7 +167,7 @@ def validate_subject_mark_data(
                 continue
 
         # Validate range
-        range_error = validate_marks_range(obtained, full_marks, subject)
+        range_error = validate_marks_range(obtained_marks, full_marks, subject)
         if range_error:
             errors.append(range_error)
             continue

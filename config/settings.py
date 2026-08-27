@@ -40,6 +40,13 @@ THIRD_PARTY_APPS = [
     'widget_tweaks',
 ]
 
+# Add django-celery-beat only if installed (graceful fallback without Redis/Celery)
+try:
+    import django_celery_beat  # noqa: F401
+    THIRD_PARTY_APPS.append('django_celery_beat')
+except ImportError:
+    pass
+
 LOCAL_APPS = [
     'apps.core.apps.CoreConfig',
     'apps.academics.apps.AcademicsConfig',
@@ -91,15 +98,30 @@ if os.getenv('USE_SQLITE', 'True') == 'True':
         }
     }
 
-# Caching: default to the in-memory LocMemCache (fine for a single server).
-# Swap to a dedicated backend (e.g. Redis/Memcached) in production when
-# running multiple workers so the cache is shared across processes.
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'galaxy-default-cache',
+# ── Caching ─────────────────────────────────────────────────────────
+# Use Redis when REDIS_URL is set (production / multi-worker);
+# fall back to LocMemCache for single-server dev.
+REDIS_URL = os.getenv('REDIS_URL', '')
+
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'KEY_PREFIX': 'galaxy',
+            'TIMEOUT': 300,  # 5 min default TTL
+        }
     }
-}
+    # Store sessions in Redis for shared access across workers
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'galaxy-default-cache',
+        }
+    }
 
 # Email configuration for the contact form. Configure these in your .env
 # file when going live (e.g. a SendGrid / SMTP provider).
@@ -169,6 +191,26 @@ if not DEBUG:
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+
+# ── Celery ───────────────────────────────────────────────────────────
+# All celery config is defined regardless of whether celery is installed,
+# so that the settings file itself is always importable. The actual Celery
+# app (config/celery.py) is only loaded when celery is available.
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL or 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', REDIS_URL or 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 300  # 5 min hard limit per task
+CELERY_TASK_SOFT_TIME_LIMIT = 240  # 4 min soft limit
+try:
+    import celery  # noqa: F401
+    import django_celery_beat  # noqa: F401
+    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+except ImportError:
+    pass  # celery / django-celery-beat not installed — skip beat scheduler
 
 # Admin customization
 ADMIN_SITE_HEADER = "Galaxy English School Administration"

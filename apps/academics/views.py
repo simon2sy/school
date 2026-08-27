@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from .models import (
     AcademicProgram, Exam, ExamRoutine, Result, SubjectMark,
     TeacherSubjectAssignment, MarksAuditLog,
@@ -25,9 +26,16 @@ from django.contrib.admin.views.decorators import staff_member_required
 def programs(request):
     """List all academic programs."""
     school = SchoolSettings.get_settings()
-    program_list = AcademicProgram.objects.filter(
-        is_published=True
-    ).order_by('display_order')
+
+    # ── Redis cache (6 hours) ──
+    cache_key = 'galaxy:programs:list'
+    program_list = cache.get(cache_key)
+    if program_list is None:
+        program_list = list(
+            AcademicProgram.objects.filter(is_published=True)
+            .order_by('display_order')
+        )
+        cache.set(cache_key, program_list, 6 * 60 * 60)
 
     context = {
         'school': school,
@@ -67,6 +75,7 @@ def exam_routine(request, exam_id=None):
     * Users can select an examination and a class (Class 1 - Class 10).
     * Routines are filtered with the ORM and sorted by exam date then
       start time. Unpublished exams are never exposed.
+    * Results cached in Redis for 30 minutes.
     """
     school = SchoolSettings.get_settings()
 
@@ -76,7 +85,7 @@ def exam_routine(request, exam_id=None):
     # Only published examinations are visible publicly.
     published_exams = Exam.objects.filter(is_published=True).order_by(
         '-start_date'
-    )
+    ).only('id', 'name', 'academic_year', 'start_date')
 
     selected_exam = None
     if selected_exam_id:
@@ -89,34 +98,41 @@ def exam_routine(request, exam_id=None):
     # Group routines into one table per class so classes are never merged.
     class_routines = []
     if selected_exam:
-        routine_qs = ExamRoutine.objects.filter(
-            exam=selected_exam
-        ).order_by('grade', 'exam_date', 'start_time')
+        # ── Redis cache (30 min) ──
+        cache_key = f"galaxy:routine:{selected_exam.pk}:{selected_grade or 'all'}"
+        class_routines = cache.get(cache_key)
 
-        # Filter by the selected class (if any).
-        if selected_grade:
-            routine_qs = routine_qs.filter(grade=selected_grade)
+        if class_routines is None:
+            routine_qs = ExamRoutine.objects.filter(
+                exam=selected_exam
+            ).order_by('grade', 'exam_date', 'start_time')
 
-        routines = routine_qs
+            # Filter by the selected class (if any).
+            if selected_grade:
+                routine_qs = routine_qs.filter(grade=selected_grade)
 
-        # Build one group per class, keeping Class 1 -> Class 10 order and
-        # preserving the date/time ordering inside each class. This is a single
-        # DB query (routines above) then grouped in Python to avoid N+1 lookups.
-        grade_label_map = dict(ExamRoutine.GRADE_CHOICES)
-        grade_order = [value for value, _ in ExamRoutine.GRADE_CHOICES]
-        graded = {value: [] for value in grade_order}
-        for routine in routines:
-            graded.setdefault(routine.grade, []).append(routine)
+            routines = routine_qs
 
-        class_routines = [
-            {
-                'grade': value,
-                'grade_label': grade_label_map[value],
-                'routines': graded[value],
-            }
-            for value in grade_order
-            if graded.get(value)
-        ]
+            # Build one group per class, keeping Class 1 -> Class 10 order and
+            # preserving the date/time ordering inside each class.
+            grade_label_map = dict(ExamRoutine.GRADE_CHOICES)
+            grade_order = [value for value, _ in ExamRoutine.GRADE_CHOICES]
+            graded = {value: [] for value in grade_order}
+            for routine in routines:
+                graded.setdefault(routine.grade, []).append(routine)
+
+            class_routines = [
+                {
+                    'grade': value,
+                    'grade_label': grade_label_map[value],
+                    'routines': graded[value],
+                }
+                for value in grade_order
+                if graded.get(value)
+            ]
+            cache.set(cache_key, class_routines, 30 * 60)  # 30 min TTL
+        # On cache hit, routines queryset is not needed —
+        # the template only uses class_routines for display.
 
     context = {
         'school': school,
@@ -131,7 +147,12 @@ def exam_routine(request, exam_id=None):
     }
     return render(request, 'academics/exam_routine.html', context)
 def results(request):
-    """Result search page."""
+    """Result search page.
+
+    Results are cached in Redis for 5 minutes per symbol_number + exam.
+    Cache is invalidated automatically when a result is saved/edited
+    (see tasks.py and the save_marks_and_result service).
+    """
     school = SchoolSettings.get_settings()
     form = ResultSearchForm()
     result_obj = None
@@ -146,19 +167,37 @@ def results(request):
             symbol_number = form.cleaned_data['symbol_number']
             exam_id = form.cleaned_data.get('exam')
 
-            try:
-                query = Result.objects.filter(
-                    symbol_number__iexact=symbol_number,
-                    is_published=True
-                ).select_related('exam').prefetch_related('subject_marks')
+            # ── Redis cache (5 min) ──
+            cache_key = f"galaxy:result:{symbol_number}:{exam_id or 'latest'}"
+            cached_result = cache.get(cache_key)
 
-                if exam_id:
-                    query = query.filter(exam_id=exam_id)
+            if cached_result is not None:
+                # Cache hit — reconstruct a lightweight object from the dict
+                # We still need the full ORM object for the template, so cache
+                # the result_id and query from there.
+                result_obj = cached_result  # stored as ORM pk
+                if isinstance(cached_result, int):
+                    try:
+                        result_obj = Result.objects.select_related('exam').prefetch_related('subject_marks').get(pk=cached_result)
+                    except Result.DoesNotExist:
+                        result_obj = None
+                        cache.delete(cache_key)
+            else:
+                try:
+                    query = Result.objects.filter(
+                        symbol_number__iexact=symbol_number,
+                        is_published=True
+                    ).select_related('exam').prefetch_related('subject_marks')
 
-                result_obj = query.latest('published_at')
+                    if exam_id:
+                        query = query.filter(exam_id=exam_id)
 
-            except Result.DoesNotExist:
-                error_message = f"No published result found for symbol number '{symbol_number}'. Please verify your symbol number and try again."
+                    result_obj = query.latest('published_at')
+                    # Cache the result ID for 5 minutes
+                    cache.set(cache_key, result_obj.pk, 5 * 60)
+
+                except Result.DoesNotExist:
+                    error_message = f"No published result found for symbol number '{symbol_number}'. Please verify your symbol number and try again."
 
     # Published exams with results
     available_exams = Exam.objects.filter(
@@ -511,6 +550,14 @@ def bulk_upload_exam_routine(request, exam_id):
                         batch_size=500
                     )
 
+                # ── Invalidate routine caches ──
+                cache.delete(f"galaxy:routine:{exam.pk}:all")
+                try:
+                    from .tasks import invalidate_routine_caches
+                    invalidate_routine_caches.delay(exam.pk)
+                except Exception:
+                    pass
+
                 messages.success(
                     request,
                     f"Successfully imported "
@@ -642,6 +689,9 @@ def exam_routine_add(request, exam_id=None):
                         room=room,
                         remarks=remarks,
                     )
+                    # ── Invalidate routine cache ──
+                    cache.delete(f"galaxy:routine:{selected_exam.pk}:all")
+                    cache.delete(f"galaxy:routine:{selected_exam.pk}:{manual_grade}")
                     messages.success(
                         request,
                         f"Routine added: Class {manual_grade} - "
@@ -742,6 +792,10 @@ def exam_routine_add(request, exam_id=None):
                         )
                         created_count += 1
                     
+                    # ── Invalidate routine cache ──
+                    cache.delete(f"galaxy:routine:{selected_exam.pk}:all")
+                    cache.delete(f"galaxy:routine:{selected_exam.pk}:{manual_grade}")
+
                     if errors:
                         for error in errors:
                             manual_form_errors.append(error)
@@ -894,6 +948,15 @@ def exam_result_add(request):
                             notes="Initial entry via admin form.",
                         )
 
+                        # ── Invalidate result cache ──
+                        cache.delete(f"galaxy:result:{symbol_number}:latest")
+                        cache.delete(f"galaxy:result:{symbol_number}:{selected_exam.pk}")
+                        try:
+                            from .tasks import invalidate_result_cache
+                            invalidate_result_cache.delay(symbol_number, selected_exam.pk)
+                        except Exception:
+                            pass  # Celery may not be running — cache.delete above suffices
+
                         messages.success(
                             request,
                             f"Result added: {student_name} ({symbol_number}). "
@@ -973,6 +1036,15 @@ def exam_result_add(request):
                                         notes="Edited via admin form.",
                                     )
 
+                                    # ── Invalidate result cache ──
+                                    cache.delete(f"galaxy:result:{symbol_number}:latest")
+                                    cache.delete(f"galaxy:result:{symbol_number}:{result.exam.pk}")
+                                    try:
+                                        from .tasks import invalidate_result_cache
+                                        invalidate_result_cache.delay(symbol_number, result.exam.pk)
+                                    except Exception:
+                                        pass
+
                                     messages.success(
                                         request,
                                         f"Result updated: {student_name} ({symbol_number}). "
@@ -989,7 +1061,7 @@ def exam_result_add(request):
     if selected_exam:
         results = Result.objects.filter(
             exam=selected_exam
-        ).prefetch_related('subject_marks').order_by('-published_at')
+        ).select_related('exam').prefetch_related('subject_marks').order_by('-published_at')
         if selected_grade:
             results = results.filter(grade=selected_grade)
 
