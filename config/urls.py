@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
-from django.contrib.auth import urls as auth_urls
+from apps.core.views import rate_limited_login, rate_limited_logout
 from apps.core.sitemaps import (
     StaticViewSitemap, NewsSitemap, EventSitemap,
     ProgramSitemap, NoticeSitemap
@@ -22,9 +22,15 @@ sitemaps = {
     'notices': NoticeSitemap,
 }
 
+# Custom auth URLs with rate limiting (namespace='auth' to match existing templates)
+auth_urlpatterns = [
+    path('login/', rate_limited_login, name='login'),
+    path('logout/', rate_limited_logout, name='logout'),
+]
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include((auth_urls.urlpatterns, 'auth'))),
+    path('accounts/', include((auth_urlpatterns, 'auth'))),
     path('', include('apps.core.urls', namespace='core')),
     path('', include('apps.academics.urls', namespace='academics')),
     path('', include('apps.content.urls', namespace='content')),

@@ -186,3 +186,57 @@ def handler_500(request):
     except Exception:
         school = None
     return render(request, 'errors/500.html', {'school': school}, status=500)
+
+
+# ── Rate-Limited Login View ─────────────────────────────────────────
+
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages as django_messages
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from .ratelimit import rate_limit
+
+
+def _login_render(request, form, extra_context=None):
+    """Render the login page with the given form."""
+    school = SchoolSettings.get_settings()
+    context = {
+        'form': form,
+        'school': school,
+        'page_title': 'Admin Login',
+    }
+    if extra_context:
+        context.update(extra_context)
+    return render(request, 'registration/login.html', context)
+
+
+@rate_limit(
+    key_prefix='login',
+    max_requests=5,
+    window_seconds=300,  # 5 minutes
+    block_message='Too many login attempts. Please wait 5 minutes before trying again.',
+)
+def rate_limited_login(request):
+    """Login view with rate limiting: max 5 attempts per IP per 5 minutes."""
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('core:home'))
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            next_url = request.GET.get('next', '/')
+            return HttpResponseRedirect(next_url)
+        # Invalid credentials — rate limiter already counting attempts
+    else:
+        form = AuthenticationForm()
+
+    return _login_render(request, form)
+
+
+def rate_limited_logout(request):
+    """Logout view (rate limiting not needed for logout)."""
+    logout(request)
+    return HttpResponseRedirect(reverse('core:home'))

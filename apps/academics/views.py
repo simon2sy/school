@@ -146,6 +146,15 @@ def exam_routine(request, exam_id=None):
         'meta_description': f"View exam routines for Classes 1-10 at {school.school_name}.",
     }
     return render(request, 'academics/exam_routine.html', context)
+from apps.core.ratelimit import rate_limit
+
+
+@rate_limit(
+    key_prefix='result_search',
+    max_requests=30,
+    window_seconds=60,  # 30 requests per minute
+    block_message='Too many search requests. Please wait a moment before trying again.',
+)
 def results(request):
     """Result search page.
 
@@ -927,46 +936,65 @@ def exam_result_add(request):
                         manual_form_errors.append(err)
                         messages.error(request, err)
                 else:
-                    try:
-                        # Create result first (with placeholder values — service will update)
-                        result = Result.objects.create(
-                            exam=selected_exam,
-                            student_name=student_name,
-                            symbol_number=symbol_number,
-                            grade=manual_grade,
-                            roll_number=roll_number,
-                            result_status='PASS',  # Will be recalculated
-                            is_published=True,
-                            published_at=timezone.now(),
-                        )
-
-                        # Use service layer to save marks and recalculate
-                        result = save_marks_and_result(
-                            result=result,
-                            subject_marks_data=subject_data,
-                            user=request.user,
-                            notes="Initial entry via admin form.",
-                        )
-
-                        # ── Invalidate result cache ──
-                        cache.delete(f"galaxy:result:{symbol_number}:latest")
-                        cache.delete(f"galaxy:result:{symbol_number}:{selected_exam.pk}")
+                    # ── Server-side teacher-subject authorization ──
+                    # Superusers can enter any subject. Staff teachers can only
+                    # enter marks for subjects they are assigned to.
+                    auth_errors = []
+                    if not request.user.is_superuser:
+                        for sd in subject_data:
+                            subj_name = sd.get("subject", "").strip()
+                            if subj_name and not is_teacher_assigned_to_subject(
+                                request.user, manual_grade, subj_name
+                            ):
+                                auth_errors.append(
+                                    f"You are not authorized to enter marks for '{subj_name}' "
+                                    f"in Class {manual_grade}."
+                                )
+                    if auth_errors:
+                        for err in auth_errors:
+                            manual_form_errors.append(err)
+                            messages.error(request, err)
+                    else:
                         try:
-                            from .tasks import invalidate_result_cache
-                            invalidate_result_cache.delay(symbol_number, selected_exam.pk)
-                        except Exception:
-                            pass  # Celery may not be running — cache.delete above suffices
+                            # Create result first (with placeholder values — service will update)
+                            result = Result.objects.create(
+                                exam=selected_exam,
+                                student_name=student_name,
+                                symbol_number=symbol_number,
+                                grade=manual_grade,
+                                roll_number=roll_number,
+                                result_status='PASS',  # Will be recalculated
+                                is_published=True,
+                                published_at=timezone.now(),
+                            )
 
-                        messages.success(
-                            request,
-                            f"Result added: {student_name} ({symbol_number}). "
-                            f"GPA: {result.gpa}, Status: {result.get_result_status_display()}"
-                        )
-                        selected_grade = manual_grade
+                            # Use service layer to save marks and recalculate
+                            result = save_marks_and_result(
+                                result=result,
+                                subject_marks_data=subject_data,
+                                user=request.user,
+                                notes="Initial entry via admin form.",
+                            )
 
-                    except Exception as e:
-                        manual_form_errors.append(str(e))
-                        messages.error(request, str(e))
+                            # ── Invalidate result cache ──
+                            cache.delete(f"galaxy:result:{symbol_number}:latest")
+                            cache.delete(f"galaxy:result:{symbol_number}:{selected_exam.pk}")
+                            try:
+                                from .tasks import invalidate_result_cache
+                                invalidate_result_cache.delay(symbol_number, selected_exam.pk)
+                            except Exception:
+                                pass  # Celery may not be running — cache.delete above suffices
+
+                            messages.success(
+                                request,
+                                f"Result added: {student_name} ({symbol_number}). "
+                                f"GPA: {result.gpa}, Status: {result.get_result_status_display()}"
+                            )
+                            selected_grade = manual_grade
+
+                        except Exception as e:
+                            manual_form_errors.append(str(e))
+                            messages.error(request, str(e))
 
     # ── Handle POST: Edit existing result ──
     elif request.method == 'POST' and request.POST.get('action') == 'edit_result':
@@ -1020,42 +1048,60 @@ def exam_result_add(request):
                                     manual_form_errors.append(err)
                                     messages.error(request, err)
                             else:
-                                try:
-                                    # Update student info
-                                    result.student_name = student_name
-                                    result.symbol_number = symbol_number
-                                    result.grade = manual_grade
-                                    result.roll_number = roll_number
-                                    result.save()
-
-                                    # Use service layer to update marks and recalculate
-                                    result = save_marks_and_result(
-                                        result=result,
-                                        subject_marks_data=subject_data,
-                                        user=request.user,
-                                        notes="Edited via admin form.",
-                                    )
-
-                                    # ── Invalidate result cache ──
-                                    cache.delete(f"galaxy:result:{symbol_number}:latest")
-                                    cache.delete(f"galaxy:result:{symbol_number}:{result.exam.pk}")
+                                # ── Server-side teacher-subject authorization ──
+                                auth_errors = []
+                                if not request.user.is_superuser:
+                                    for sd in subject_data:
+                                        subj_name = sd.get("subject", "").strip()
+                                        target_grade = manual_grade or result.grade
+                                        if subj_name and not is_teacher_assigned_to_subject(
+                                            request.user, target_grade, subj_name
+                                        ):
+                                            auth_errors.append(
+                                                f"You are not authorized to enter marks for '{subj_name}' "
+                                                f"in Class {target_grade}."
+                                            )
+                                if auth_errors:
+                                    for err in auth_errors:
+                                        manual_form_errors.append(err)
+                                        messages.error(request, err)
+                                else:
                                     try:
-                                        from .tasks import invalidate_result_cache
-                                        invalidate_result_cache.delay(symbol_number, result.exam.pk)
-                                    except Exception:
-                                        pass
+                                        # Update student info
+                                        result.student_name = student_name
+                                        result.symbol_number = symbol_number
+                                        result.grade = manual_grade
+                                        result.roll_number = roll_number
+                                        result.save()
 
-                                    messages.success(
-                                        request,
-                                        f"Result updated: {student_name} ({symbol_number}). "
-                                        f"GPA: {result.gpa}, Status: {result.get_result_status_display()}"
-                                    )
-                                    selected_grade = manual_grade
-                                    editing_result = None  # Exit edit mode
+                                        # Use service layer to update marks and recalculate
+                                        result = save_marks_and_result(
+                                            result=result,
+                                            subject_marks_data=subject_data,
+                                            user=request.user,
+                                            notes="Edited via admin form.",
+                                        )
 
-                                except Exception as e:
-                                    manual_form_errors.append(str(e))
-                                    messages.error(request, str(e))
+                                        # ── Invalidate result cache ──
+                                        cache.delete(f"galaxy:result:{symbol_number}:latest")
+                                        cache.delete(f"galaxy:result:{symbol_number}:{result.exam.pk}")
+                                        try:
+                                            from .tasks import invalidate_result_cache
+                                            invalidate_result_cache.delay(symbol_number, result.exam.pk)
+                                        except Exception:
+                                            pass
+
+                                        messages.success(
+                                            request,
+                                            f"Result updated: {student_name} ({symbol_number}). "
+                                            f"GPA: {result.gpa}, Status: {result.get_result_status_display()}"
+                                        )
+                                        selected_grade = manual_grade
+                                        editing_result = None  # Exit edit mode
+
+                                    except Exception as e:
+                                        manual_form_errors.append(str(e))
+                                        messages.error(request, str(e))
 
     # ── Refresh results list ──
     if selected_exam:
